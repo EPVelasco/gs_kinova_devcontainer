@@ -127,7 +127,7 @@ gel_marker.scale.z = 0.001
 gel_marker.color.r = 0.8
 gel_marker.color.g = 0.8
 gel_marker.color.b = 1.0
-gel_marker.color.a = 1.0
+gel_marker.color.a = 0.8
 gel_marker.pose.orientation.w = 1.0
 
 

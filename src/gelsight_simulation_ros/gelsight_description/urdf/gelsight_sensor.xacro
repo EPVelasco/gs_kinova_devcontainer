@@ -22,8 +22,8 @@
             <format>R8G8B8</format>
           </image>
           <clip>
-            <near>0.016</near>
-            <far>0.018</far>
+            <near>0.018</near>
+            <far>0.020</far>
           </clip>
           <depth_camera>
             <output>depths</output>

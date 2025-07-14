@@ -348,19 +348,19 @@ def main():
     ]
     
     light_sources_gs_mini2025 = [
-        {'position': [0, 1, 0.25], 'color': (120, 255, 153), 'kd': 0.5, 'ks': 0.5},  # green, top
-        {'position': [-1, 0, 0.25], 'color': (255, 130, 115), 'kd': 0.5, 'ks': 0.5},  # blue, right
-        {'position': [0, -1, 0.25], 'color': (0, 0, 0), 'kd': 0.1, 'ks': 0.1},  # white, bottom
-        {'position': [1, 0, 0.25], 'color': (108, 82, 255), 'kd': 0.5, 'ks': 0.5},  # red, left
+        {'position': [0, 1, 0.25], 'color': (120, 255, 80),  'kd': 0.5, 'ks': 0.3},  # green, top
+        {'position': [-1, 0, 0.25], 'color': (255, 150, 100), 'kd': 0.5, 'ks': 0.3},  # blue, right
+        {'position': [0, -1, 0.25], 'color': (255, 255, 255), 'kd': 0.0, 'ks': 0.3},  # white, bottom
+        {'position': [1, 0, 0.25],  'color': (180, 150, 255), 'kd': 0.5, 'ks': 0.3},  # red, left
     ]
 
     background_img = cv2.imread(PKG_PATH + '/assets/back_gs_mini_320_240.png')
     ka = 1.0
 
     px2m_ratio = 5.4347826087e-05
-    elastomer_thickness = 0.004
-    min_depth = 0.014  # distance from the image sensor to the rigid glass outer surface
-    texture_sigma = 0.00001
+    elastomer_thickness = 0.002
+    min_depth = 0.018  # distance from the image sensor to the rigid glass outer surface
+    texture_sigma = 0.000005
 
     simulation_approach = SimulationApproach(
         light_sources=light_sources_gs_mini2025,
