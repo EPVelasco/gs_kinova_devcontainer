@@ -1,0 +1,29 @@
+<launch>
+    <arg name="use_sim_time" default="true"/>
+    <arg name="debug" default="false" />
+    <arg name="gui" default="true" />
+    <arg name="paused" default="true" />
+
+    <!-- Initial Arguments of objects position -->
+    <arg name="object_name" default="aluminum_profile"/>
+    <arg name="x" default="0.5"/>
+    <arg name="y" default="0.5"/>
+    <arg name="z" default="0.0"/>
+    <arg name="roll" default="0.0"/>
+    <arg name="pitch" default="0.0"/>
+    <arg name="yaw" default="0.0"/>
+
+    <!-- <exec command="python $(find kortex_gazebo)/scripts/generate_objects_world.py $(arg object_name) $(arg x) $(arg y) $(arg z) $(arg roll) $(arg pitch) $(arg yaw)" /> -->
+    <node pkg="kortex_gazebo" type="generate_objects_world.py" name="generate_world_node" output="screen" args="$(arg object_name) $(arg x) $(arg y) $(arg z) $(arg roll) $(arg pitch) $(arg yaw)"/>
+
+    <!-- <arg name="world_file" default="/home/catkin_ws/src/ros_kortex/kortex_gazebo/worlds/world_experiments.world"/> -->
+    <arg name="world_file" default="/tmp/generated_world.world"/>
+    <include file="$(find gazebo_ros)/launch/empty_world.launch">
+        <arg name="world_name" value="$(arg world_file)" />
+        <arg name="gui" value="$(arg gui)" />
+        <arg name="use_sim_time" value="$(arg use_sim_time)"/>
+        <arg name="debug" value="$(arg debug)" />
+        <arg name="paused" value="$(arg paused)"/>
+    </include>
+</launch>
+

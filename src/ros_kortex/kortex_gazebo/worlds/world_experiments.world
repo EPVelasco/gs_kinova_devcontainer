@@ -12,7 +12,7 @@
       <uri>model://ground_plane</uri>
     </include>
 
-    <!-- Modelos STL -->
+    <!-- Aluminum profile -->
     <model name="aluminum_profile">
       <static>true</static>
       <link name="link">
@@ -20,7 +20,7 @@
           <geometry>
             <mesh>
               <uri>file:///home/catkin_ws/src/ros_kortex/kortex_gazebo/worlds/model_simulation/mesh/aluminum_profile.stl</uri>
-              <scale>0.001 0.001 0.001</scale> <!-- x y z -->
+              <scale>0.001 0.001 0.001</scale>
             </mesh>
           </geometry>
         </visual>
@@ -28,16 +28,19 @@
           <geometry>
             <mesh>
               <uri>file:///home/catkin_ws/src/ros_kortex/kortex_gazebo/worlds/model_simulation/mesh/aluminum_profile.stl</uri>
-              <scale>0.001 0.001 0.001</scale> <!-- x y z -->
+              <scale>0.001 0.001 0.001</scale>
             </mesh>
           </geometry>
         </collision>
+        <inertial>
+          <mass value="1.0"/>
+          <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
+        </inertial>
       </link>
       <pose>0.5 0.5 0 0 0 0</pose>
     </model>
 
-
-        <!-- Modelos STL -->
+    <!-- Curve 1 -->
     <model name="curve_1">
       <static>true</static>
       <link name="link">
@@ -45,7 +48,7 @@
           <geometry>
             <mesh>
               <uri>file:///home/catkin_ws/src/ros_kortex/kortex_gazebo/worlds/model_simulation/mesh/curve_figure_1.stl</uri>
-              <scale>0.001 0.001 0.001</scale> <!-- x y z -->
+              <scale>0.001 0.001 0.001</scale>
             </mesh>
           </geometry>
         </visual>
@@ -53,16 +56,19 @@
           <geometry>
             <mesh>
               <uri>file:///home/catkin_ws/src/ros_kortex/kortex_gazebo/worlds/model_simulation/mesh/curve_figure_1.stl</uri>
-              <scale>0.001 0.001 0.001</scale> <!-- x y z -->
+              <scale>0.001 0.001 0.001</scale>
             </mesh>
           </geometry>
         </collision>
+        <inertial>
+          <mass value="1.0"/>
+          <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
+        </inertial>
       </link>
       <pose>0.0 0.3 0 0 0 0</pose>
     </model>
 
-
-        <!-- Modelos STL -->
+    <!-- Curve 2 -->
     <model name="curve_2">
       <static>true</static>
       <link name="link">
@@ -70,7 +76,7 @@
           <geometry>
             <mesh>
               <uri>file:///home/catkin_ws/src/ros_kortex/kortex_gazebo/worlds/model_simulation/mesh/curve_figure_2.stl</uri>
-              <scale>0.001 0.001 0.001</scale> <!-- x y z -->
+              <scale>0.001 0.001 0.001</scale>
             </mesh>
           </geometry>
         </visual>
@@ -78,16 +84,17 @@
           <geometry>
             <mesh>
               <uri>file:///home/catkin_ws/src/ros_kortex/kortex_gazebo/worlds/model_simulation/mesh/curve_figure_2.stl</uri>
-              <scale>0.001 0.001 0.001</scale> <!-- x y z -->
+              <scale>0.001 0.001 0.001</scale>
             </mesh>
           </geometry>
         </collision>
+        <inertial>
+          <mass value="1.0"/>
+          <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
+        </inertial>
       </link>
       <pose>-0.5 -0.5 0 0 0 0</pose>
     </model>
 
-
-
   </world>
 </sdf>
-

@@ -62,6 +62,12 @@
             <color rgba="0.75294 0.75294 0.75294 1" />
           </material>
             
+    <!-- +++++++++++++++++++++++++++++++++++++++++++++++++++++GS mini +++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->	    
+<xacro:include filename="$(find gelsight_description)/urdf/gelsight_sensor.xacro"/>
+<xacro:gelsight_sensor parent="tool_frame"/>
+<!-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++	 -->
+
+
         <!-- Load the Gazebo transmissions and gazebo_ros_control plugin -->
         <xacro:if value="${sim}">
 

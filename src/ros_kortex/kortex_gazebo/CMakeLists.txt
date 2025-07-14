@@ -29,6 +29,12 @@ include_directories(${GAZEBO_INCLUDE_DIRS})
 link_directories(${GAZEBO_LIBRARY_DIRS})
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${GAZEBO_CXX_FLAGS}")
 
+catkin_install_python(PROGRAMS
+  scripts/generate_objects_world.py
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+
+
 # To add your Gazebo plugin to this package, put your source file under src and uncomment/modify those lines
 # add_library(my_gazebo_plugin SHARED src/my_gazebo_plugin.cpp)
 # target_link_libraries(my_gazebo_plugin ${GAZEBO_LIBRARIES})
