@@ -4,6 +4,7 @@ This repository contains code and configuration files for simulate a edge tracki
 
 The system enables the end-effector to follow object contours by combining visual-tactile perception and reactive control.
 
+![alt text](images/simulation_gazebo_rviz.png)
 
 ## Docker installation and setup (Dev Container)
 
