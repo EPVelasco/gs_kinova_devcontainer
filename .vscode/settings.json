@@ -1,0 +1,29 @@
+{
+    "python.autoComplete.extraPaths": [
+        "/home/catkin_ws/devel/lib/python3/dist-packages",
+        "/opt/ros/noetic/lib/python3/dist-packages"
+    ],
+    "python.analysis.extraPaths": [
+        "/home/catkin_ws/devel/lib/python3/dist-packages",
+        "/opt/ros/noetic/lib/python3/dist-packages"
+    ],
+    // ✅ Optimización para análisis y consumo bajo
+    // "python.analysis.autoSearchPaths": false,
+    // "python.analysis.useLibraryCodeForTypes": false,
+    // "python.analysis.diagnosticMode": "openFilesOnly",
+    // ✅ Reducción de uso C++
+    // "C_Cpp.intelliSenseEngine": "Disabled",
+    // "C_Cpp.workspaceParsingPriority": "low",
+    // "C_Cpp.workspaceParsingThreads": 2,
+    // "C_Cpp.loggingLevel": "None",
+    // ✅ ROS
+    // "ros.diagnostics.enable": false,
+    // // ✅ GitLens en modo ligero
+    // "gitlens.mode.active": "zen",
+    // "gitlens.hovers.enabled": false,
+    // // ✅ Extras útiles
+    // "editor.formatOnSave": true,
+    // "editor.tabSize": 4,
+    // "files.insertFinalNewline": true,
+    // "files.trimTrailingWhitespace": true
+}

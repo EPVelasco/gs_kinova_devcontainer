@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://ros.org/wiki/xacro">
+
+  <xacro:macro name="gelsight_spectre" params="suffix parent r x y color filename">
+    <link name="gelsight_spectre_${suffix}">
+      <visual>
+        <origin rpy="0 0 ${r}" xyz="${x} ${y} 0.0"/>
+        <geometry>
+          <mesh filename="${filename}" scale="0.001 0.001 0.001"/>
+        </geometry>
+       <material name="transparent_spectre">
+            <color rgba="${color} 1.0"/>
+        </material>
+      </visual>
+      <inertial>
+        <mass value="0.01"/>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <inertia ixx="1e-5" ixy="0.0" ixz="0.0"
+                 iyy="1e-5" iyz="0.0"
+                 izz="1e-5"/>
+      </inertial>
+    </link>
+
+    <gazebo reference="gelsight_spectre_${suffix}">
+      <visual>
+        <material>
+          <ambient>${color} 0.9</ambient>
+          <diffuse>${color} 0.9</diffuse>
+          <specular>0.1 0.1 0.1 0</specular>
+          <emissive>${color} 0.01</emissive>
+        </material>
+      </visual>
+    </gazebo>
+
+    <joint name="gelsight_base_to_spectre_${suffix}" type="fixed">
+      <parent link="${parent}"/>
+      <child link="gelsight_spectre_${suffix}"/>
+      <origin xyz="0 0 0.0" rpy="0 0 0"/>
+    </joint>
+  </xacro:macro>
+
+</robot>

@@ -1,0 +1,93 @@
+<?xml version="1.0" ?>
+<sdf version="1.6">
+  <world name="default">
+
+    <!-- Luz -->
+    <include>
+      <uri>model://sun</uri>
+    </include>
+
+    <!-- Plano -->
+    <include>
+      <uri>model://ground_plane</uri>
+    </include>
+
+    <!-- Modelos STL -->
+    <model name="aluminum_profile">
+      <static>true</static>
+      <link name="link">
+        <visual name="visual">
+          <geometry>
+            <mesh>
+              <uri>file:///home/catkin_ws/src/ros_kortex/kortex_gazebo/worlds/model_simulation/mesh/aluminum_profile.stl</uri>
+              <scale>0.001 0.001 0.001</scale> <!-- x y z -->
+            </mesh>
+          </geometry>
+        </visual>
+        <collision name="collision">
+          <geometry>
+            <mesh>
+              <uri>file:///home/catkin_ws/src/ros_kortex/kortex_gazebo/worlds/model_simulation/mesh/aluminum_profile.stl</uri>
+              <scale>0.001 0.001 0.001</scale> <!-- x y z -->
+            </mesh>
+          </geometry>
+        </collision>
+      </link>
+      <pose>0.5 0.5 0 0 0 0</pose>
+    </model>
+
+
+        <!-- Modelos STL -->
+    <model name="curve_1">
+      <static>true</static>
+      <link name="link">
+        <visual name="visual">
+          <geometry>
+            <mesh>
+              <uri>file:///home/catkin_ws/src/ros_kortex/kortex_gazebo/worlds/model_simulation/mesh/curve_figure_1.stl</uri>
+              <scale>0.001 0.001 0.001</scale> <!-- x y z -->
+            </mesh>
+          </geometry>
+        </visual>
+        <collision name="collision">
+          <geometry>
+            <mesh>
+              <uri>file:///home/catkin_ws/src/ros_kortex/kortex_gazebo/worlds/model_simulation/mesh/curve_figure_1.stl</uri>
+              <scale>0.001 0.001 0.001</scale> <!-- x y z -->
+            </mesh>
+          </geometry>
+        </collision>
+      </link>
+      <pose>0.0 0.3 0 0 0 0</pose>
+    </model>
+
+
+        <!-- Modelos STL -->
+    <model name="curve_2">
+      <static>true</static>
+      <link name="link">
+        <visual name="visual">
+          <geometry>
+            <mesh>
+              <uri>file:///home/catkin_ws/src/ros_kortex/kortex_gazebo/worlds/model_simulation/mesh/curve_figure_2.stl</uri>
+              <scale>0.001 0.001 0.001</scale> <!-- x y z -->
+            </mesh>
+          </geometry>
+        </visual>
+        <collision name="collision">
+          <geometry>
+            <mesh>
+              <uri>file:///home/catkin_ws/src/ros_kortex/kortex_gazebo/worlds/model_simulation/mesh/curve_figure_2.stl</uri>
+              <scale>0.001 0.001 0.001</scale> <!-- x y z -->
+            </mesh>
+          </geometry>
+        </collision>
+      </link>
+      <pose>-0.5 -0.5 0 0 0 0</pose>
+    </model>
+
+
+
+  </world>
+</sdf>
+

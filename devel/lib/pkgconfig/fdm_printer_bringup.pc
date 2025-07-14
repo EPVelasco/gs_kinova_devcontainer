@@ -1,0 +1,8 @@
+prefix=/home/catkin_ws/devel
+
+Name: fdm_printer_bringup
+Description: Description of fdm_printer_bringup
+Version: 0.0.0
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: 

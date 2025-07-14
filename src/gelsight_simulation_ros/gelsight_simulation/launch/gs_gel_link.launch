@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<launch>
+    <!-- Parámetro para indicar que es simulación -->
+    <param name="sim" value="true"/>
+
+    <!-- Node del driver -->
+    <node name="gelsight_sim"
+          pkg="gelsight_gazebo"
+          type="gelsight_driver.py"
+          output="screen">
+        <param name="parent_frame" value="gs_gel_link"/>
+        <param name="sim" value="true"/>
+    </node>
+</launch>
