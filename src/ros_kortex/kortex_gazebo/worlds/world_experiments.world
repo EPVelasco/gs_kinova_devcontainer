@@ -96,5 +96,39 @@
       <pose>-0.5 -0.5 0 0 0 0</pose>
     </model>
 
+
+        <!-- shoe-->
+    <model name="shoe">
+      <static>false</static>
+      <link name="link">
+        <visual name="visual">
+          <geometry>
+            <mesh>
+              <uri>file:///home/catkin_ws/src/ros_kortex/kortex_gazebo/worlds/model_simulation/mesh/shoe/shoe_origin.obj</uri>
+              <scale>0.001 0.001 0.001</scale>
+            </mesh>
+          </geometry>
+        </visual>
+        <collision name="collision">
+          <geometry>
+            <mesh>
+              <uri>file:///home/catkin_ws/src/ros_kortex/kortex_gazebo/worlds/model_simulation/mesh/shoe/shoe_origin.obj</uri>
+              <scale>0.001 0.001 0.001</scale>
+            </mesh>
+          </geometry>
+        </collision>
+        <inertial>
+          <mass value="1.0"/>
+              <inertia 
+            ixx="0.001" ixy="0.0" ixz="0.0"
+            iyy="0.001" iyz="0.0"
+            izz="0.001"/>
+        </inertial>
+      </link>
+      <pose>0.0 0.0 0 0 0 0</pose>
+    </model>
+
+
+
   </world>
 </sdf>

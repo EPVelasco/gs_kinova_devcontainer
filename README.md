@@ -50,9 +50,14 @@ This will compile the workspace and prepare the environment.
 To start the simulation environment, use the following command inside the Dev Container terminal:
 
 ```bash
-roslaunch kortex_gazebo spawn_gs_Kinova.launch start_rviz:=true use_trajectory_controller:=false gs_sim:=true object_name="aluminum_profile"
+roslaunch kortex_gazebo spawn_gs_Kinova.launch start_rviz:=true use_trajectory_controller:=false gs_sim:=true object_name:="aluminum_profile"
 ````
 
+To launch a shoe simulation, you need set the RPY angles for the stl:
+
+```bash
+roslaunch kortex_gazebo spawn_gs_Kinova.launch start_rviz:=true use_trajectory_controller:=false gs_sim:=true object_name:="shoe" x:=0.50 y:=0.0 z:=0.0582 roll:=0.012055 pitch:=0.035225 yall:=0.0
+````
 This command will:
 
 * Launch **Gazebo** and spawn the Kinova robot.

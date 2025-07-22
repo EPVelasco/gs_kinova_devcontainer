@@ -22,6 +22,8 @@ elif object_name == "curve_1":
     stl_file = "file:///home/catkin_ws/src/ros_kortex/kortex_gazebo/worlds/model_simulation/mesh/curve_figure_1.stl"
 elif object_name == "curve_2":
     stl_file = "file:///home/catkin_ws/src/ros_kortex/kortex_gazebo/worlds/model_simulation/mesh/curve_figure_2.stl"
+elif object_name == "shoe":
+    stl_file = "file:///home/catkin_ws/src/ros_kortex/kortex_gazebo/worlds/model_simulation/mesh/shoe/shoe_origin.obj"
 else:
     stl_file = ""
 
@@ -57,9 +59,12 @@ content = f"""<?xml version="1.0" ?>
           </geometry>
         </collision>
         <inertial>
-          <mass value="1.0"/>
-          <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
-        </inertial>
+          <mass value="100.0"/>
+          <inertia 
+            ixx="0.001" ixy="0.0" ixz="0.0"
+            iyy="0.001" iyz="0.0"
+            izz="0.001"/>
+       </inertial>
       </link>
       <pose>{x} {y} {z} {roll} {pitch} {yaw}</pose>
     </model>

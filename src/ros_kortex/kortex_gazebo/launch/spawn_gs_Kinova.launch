@@ -13,7 +13,7 @@
     <arg name="z0" default="0"/>
 
     <!-- Initial object pose  -->
-    <arg name="object_name" default="aluminum_profile"/>
+    <arg name="object_name" default="shoe"/>
     <arg name="x" default="0.4"/>
     <arg name="y" default="-0.15"/>
     <arg name="z" default="0.0"/>
