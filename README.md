@@ -80,3 +80,7 @@ Once the environment is launched, you can run your visual servoing node
 ```
 roslaunch ToDo.launch
 ```
+
+## GPU errors
+
+If you have problems with Nvidia dependencies, or if you don't have a physical GPU, you can create your container without the NVIDIA flags. The `devcontainer_w-o_GPU.json` file has instructions for creating the container. Just replace the contents of the original `devcontainer.json` file with `devcontainer_w-o_GPU.json`.
