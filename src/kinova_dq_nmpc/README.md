@@ -11,5 +11,5 @@ rostopic echo /my_gen3/joint_states
 ## Controller based on the inverse differential kinematics
 I cannot find the previous controller
 ## Map between visual servoing and dq controller
-## Clean Dq libraries code (We do not something fancy this is just pure kinematic chain)
+## Clean Dq libraries code (We do not need something fancy since this is just pure kinematic chain)
 
