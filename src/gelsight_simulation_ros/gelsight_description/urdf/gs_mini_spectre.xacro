@@ -13,14 +13,14 @@
         </material>
       </visual>
       <inertial>
-        <mass value="0.01"/>
+        <mass value="0.2"/>
         <origin xyz="0 0 0" rpy="0 0 0"/>
         <inertia ixx="1e-5" ixy="0.0" ixz="0.0"
                  iyy="1e-5" iyz="0.0"
                  izz="1e-5"/>
       </inertial>
     </link>
-
+    <!-- Colors of mirror leds -->
     <gazebo reference="gelsight_spectre_${suffix}">
       <visual>
         <material>
