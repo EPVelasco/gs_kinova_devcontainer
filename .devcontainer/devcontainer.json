@@ -28,13 +28,7 @@
         "ROS_DOMAIN_ID": "42"
     },
 "runArgs": [
-    "--gpus", "all",
     "--net=host",
-    "--pid=host",
-    "--ipc=host",
-    "--cpuset-cpus=0-9",
-    "-e", "NVIDIA_VISIBLE_DEVICES=all",
-    "-e", "NVIDIA_DRIVER_CAPABILITIES=all",
     "-e", "DISPLAY=${env:DISPLAY}"
 ]
 ,
