@@ -6,6 +6,7 @@
     <arg name="gazebo_gui"   default ="true"/>
     <arg name="start_rviz" default="true"/>
     <arg name="gs_sim" default="false"/>
+    <arg name="rviz_config" default="test_01.rviz" />
     
     <!-- Initial position in Gazebo -->
     <arg name="x0" default="0"/>
@@ -181,8 +182,9 @@
             <param name="wait_time" value="60" />
         </test> 
 
-        <!-- Start RViz -->
-        <node name="rviz" pkg="rviz" type="rviz" args="-d $(find kortex_gazebo)/rviz/test_01.rviz" if="$(arg start_rviz)"/>
+        <!-- Start RViz -->        
+
+        <node name="rviz" pkg="rviz" type="rviz" args="-d $(find kortex_gazebo)/rviz/$(arg rviz_config)" if="$(arg start_rviz)" />
     
     </group>
 
