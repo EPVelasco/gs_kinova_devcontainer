@@ -144,7 +144,7 @@
     <joint name="gs_camera_joint" type="fixed">
       <parent link="gs_gel_link"/>
       <child link="gs_camera_link"/>
-      <origin xyz="0.012 0.0143 0.035" rpy="0 ${-pi/2} ${pi}"/>
+      <origin xyz="0.0115 0.01386 0.035" rpy="0 ${-pi/2} ${pi}"/>
       <!-- <origin xyz="0.012 0.0143 0.035" rpy="0 0 0"/> -->
     </joint>
 
@@ -152,7 +152,7 @@
     <joint name="gs_camera_pcloud_joint" type="fixed">
       <parent link="gs_gel_link"/>
       <child link="gs_camera_pcloud"/>
-      <origin xyz="0.012 0.0143 0.035" rpy="0 0 ${pi/2}"/>
+      <origin xyz="0.0115 0.01386 0.035" rpy="0 0 ${pi/2}"/>
     </joint>
 
 
