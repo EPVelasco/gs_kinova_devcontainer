@@ -81,7 +81,10 @@ RUN curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key -o 
 RUN apt-get update && apt-get install -y \
     ros-noetic-ros-controllers \
     ros-noetic-moveit*\
-    ros-noetic-ompl 
+    ros-noetic-ompl \
+    ros-noetic-gazebo-ros-pkgs
+
+RUN pip install opencv-python opencv-contrib-python
 
 USER $USERNAME
 RUN conan config set general.revisions_enabled=1
@@ -124,7 +127,6 @@ RUN echo "TERM=xterm-256color" >> ~/.bashrc && \
     echo 'export ACADOS_SOURCE_DIR=${HOME}/acados' >> ~/.bashrc && \
     echo 'alias gb="vim ~/.bashrc"'    >> ~/.bashrc && \
     echo 'alias gi="source ~/.bashrc"' >> ~/.bashrc
-
 
 # disable Rviz warning 
 ENV DISABLE_ROS1_EOL_WARNINGS=1

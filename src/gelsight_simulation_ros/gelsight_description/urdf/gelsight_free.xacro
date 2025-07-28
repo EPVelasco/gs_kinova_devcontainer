@@ -23,13 +23,13 @@
     <gravity>0</gravity>
   </gazebo>
 
-  <!-- Cargar el plugin después de que base_link exista -->
-  <gazebo>
-    <plugin name="gelsight_force_move" filename="libgazebo_ros_force_based_move.so">
-      <body_name>base_link</body_name>
-      <topic_name>cmd_vel</topic_name>
-      <frame_name>base_link</frame_name>
-    </plugin>
-  </gazebo>
+<gazebo>
+  <!-- <plugin name="gelsight_force_move" filename="libgazebo_ros_force_based_move.so"> -->
+  <plugin name="apply_force" filename="libgazebo_ros_force.so">
+    <bodyName>base_link</bodyName>
+    <topicName>applied_force</topicName>
+    <frameName>base_link</frameName>
+  </plugin>
+</gazebo>
 
 </robot>
