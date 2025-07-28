@@ -1,0 +1,48 @@
+<launch>
+  <!-- ============ ARGUMENTOS ================= -->
+  <arg name="use_sim_time" default="true"/>
+  <arg name="debug" default="false" />
+  <arg name="gui" default="true" />
+  <arg name="paused" default="false" />
+  <arg name="gs_sim" default="true" />
+
+  <!-- Objeto a insertar y su pose -->
+  <arg name="object_name" default="aluminum_profile"/>
+  <arg name="x" default="0.5"/>
+  <arg name="y" default="0.5"/>
+  <arg name="z" default="0.0"/>
+  <arg name="roll" default="0.0"/>
+  <arg name="pitch" default="0.0"/>
+  <arg name="yaw" default="0.0"/>
+
+  <!-- ============ GENERAR MUNDO CON OBJETO STL ============ -->
+  <node pkg="kortex_gazebo" type="generate_objects_world.py" name="generate_world_node" output="screen"
+        args="$(arg object_name) $(arg x) $(arg y) $(arg z) $(arg roll) $(arg pitch) $(arg yaw)"/>
+
+  <!-- Ruta al mundo generado dinámicamente -->
+  <arg name="world_file" default="/tmp/generated_world.world"/>
+
+  <!-- ============ CARGAR SENSOR ============ -->
+  <param name="robot_description" command="$(find xacro)/xacro '$(find gelsight_description)/urdf/gelsight_free.xacro'" />
+
+  <!-- Publicadores de TF -->
+  <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher" output="screen"/>
+  <node pkg="joint_state_publisher" type="joint_state_publisher" name="joint_state_publisher" output="screen"/>
+
+  <!-- ============ LANZAR GAZEBO ============ -->
+  <include file="$(find gazebo_ros)/launch/empty_world.launch">
+    <arg name="world_name" value="$(arg world_file)" />
+    <arg name="paused" value="$(arg paused)"/>
+    <arg name="use_sim_time" value="$(arg use_sim_time)"/>
+    <arg name="gui" value="$(arg gui)"/>
+    <arg name="debug" value="$(arg debug)"/>
+  </include>
+
+  <!-- ============ SPAWN DEL SENSOR EN GAZEBO ============ -->
+  <node name="spawn_gelsight" pkg="gazebo_ros" type="spawn_model" output="screen"
+        args="-param robot_description -urdf -model gelsight_sensor -x 0 -y 0 -z 0.5" />
+
+  <!-- Run gelsight_simulation -->
+    <include file="$(find gelsight_simulation)/launch/gs_gel_link.launch" if="$(arg gs_sim)"/>
+
+</launch>
