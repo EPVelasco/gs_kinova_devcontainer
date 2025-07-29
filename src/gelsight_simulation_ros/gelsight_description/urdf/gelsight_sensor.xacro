@@ -154,7 +154,7 @@
           <depthImageTopicName>/gelsight/depth/image_raw</depthImageTopicName>
           <depthImageInfoTopicName>/gelsight/depth/camera_info</depthImageInfoTopicName>
           <pointCloudTopicName>/gelsight/depth/points</pointCloudTopicName>
-          <frameName>gs_camera_link</frameName>
+          <frameName>gs_camera_pcloud</frameName>
           <pointCloudCutoff>0.0</pointCloudCutoff>
           <distortionK1>0</distortionK1>
           <distortionK2>0</distortionK2>

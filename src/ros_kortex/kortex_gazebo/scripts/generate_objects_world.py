@@ -90,7 +90,7 @@ quat = tf.transformations.quaternion_from_euler(float(roll), float(pitch), float
 if stl_file != "":
     # crear marker y publicarlo
     object_marker = Marker()
-    object_marker.header.frame_id = "base_link"
+    object_marker.header.frame_id = "world"
     object_marker.ns = "objects"
     object_marker.id = 0
     object_marker.type = Marker.MESH_RESOURCE
