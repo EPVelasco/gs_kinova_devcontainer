@@ -58,6 +58,12 @@ To launch a shoe simulation, you need set the RPY angles for the stl:
 ```bash
 roslaunch kortex_gazebo spawn_gs_Kinova.launch start_rviz:=true use_trajectory_controller:=false gs_sim:=true object_name:="shoe" x:=0.50 y:=0.0 z:=0.0582 roll:=0.012055 pitch:=0.035225 yall:=0.0
 ````
+
+To launch a free body gelsight sensor
+```bash
+roslaunch gelsight_gazebo start_gazebo_gs.launch
+````
+
 This command will:
 
 * Launch **Gazebo** and spawn the Kinova robot.
