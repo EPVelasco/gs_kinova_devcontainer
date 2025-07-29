@@ -12,7 +12,7 @@
       <inertia ixx="0.001" iyy="0.001" izz="0.001"
               ixy="0.0" ixz="0.0" iyz="0.0"/>
     </inertial>
-        <visual>
+        <!-- <visual>
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry>
         <cylinder length="0.00001" radius="0.05"/>
@@ -24,7 +24,7 @@
       <geometry>
         <cylinder length="0.00001" radius="0.05"/>
       </geometry>
-</collision>
+</collision> -->
 
   </link>
 
@@ -37,10 +37,7 @@
   </gazebo>
 
 <gazebo>
-  <!-- <plugin name="gelsight_force_move" filename="libgazebo_ros_force_based_move.so"> -->
   <plugin name="apply_force" filename="libgazebo_ros_force.so">
-
-
     <bodyName>base_link</bodyName>
     <topicName>applied_force</topicName>
     <frameName>base_link</frameName>

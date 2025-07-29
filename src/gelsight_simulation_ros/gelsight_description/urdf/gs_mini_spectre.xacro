@@ -4,7 +4,7 @@
   <xacro:macro name="gelsight_spectre" params="suffix parent r x y color filename">
     <link name="gelsight_spectre_${suffix}">
       <visual>
-        <origin rpy="0 0 ${r}" xyz="${x} ${y} 0.0"/>
+        <origin rpy="0 0 ${r}" xyz="${x} ${y} 0.0129294"/>
         <geometry>
           <mesh filename="${filename}" scale="0.001 0.001 0.001"/>
         </geometry>
@@ -13,7 +13,7 @@
         </material>
       </visual>
       <inertial>
-        <mass value="0.2"/>
+        <mass value="0.01"/>
         <origin xyz="0 0 0" rpy="0 0 0"/>
         <inertia ixx="1e-5" ixy="0.0" ixz="0.0"
                  iyy="1e-5" iyz="0.0"

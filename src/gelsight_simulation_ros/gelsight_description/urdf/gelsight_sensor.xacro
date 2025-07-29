@@ -72,25 +72,25 @@
      <joint name="gs_holder_joint" type="fixed">
       <parent link="${parent}"/>
       <child link="gs_kinova_holder_link"/>
-      <origin xyz="-0.0380 -0.038 0" rpy="0 0 0"/>
+      <origin xyz="0.0 0.0 0.0127151" rpy="0 0 0"/>
     </joint>
 
     <joint name="gs_base_joint" type="fixed">
-      <parent link="${parent}"/>
+      <parent link="gs_kinova_holder_link"/>
       <child link="gs_base_link"/>
-      <origin xyz="-0.014 -0.016 0" rpy="0 0 0"/>
+      <origin xyz="0.0 0.0 0.0205405" rpy="0 0 0"/>
     </joint>
 
     <joint name="gs_cap_joint" type="fixed">
-      <parent link="${parent}"/>
+      <parent link="gs_base_link"/>
       <child link="gs_cap_link"/>
-      <origin xyz="-0.0144 -0.016 0" rpy="0 0 0"/>
+      <origin xyz="0.0 0.0 0.0129196" rpy="0 0 0"/>
     </joint>
 
     <joint name="gs_gel_joint" type="fixed">
-      <parent link="${parent}"/>
+      <parent link="gs_base_link"/>
       <child link="gs_gel_link"/>
-      <origin xyz="-0.0115 -0.01386 0" rpy="0 0 0"/>
+      <origin xyz="0.0 0.0 0.0184587" rpy="0 0 0"/>
     </joint>
 
  
@@ -105,16 +105,16 @@
     </link>
 
     <joint name="gs_camera_joint" type="fixed">
-      <parent link="gs_gel_link"/>
+      <parent link="gs_base_link"/>
       <child link="gs_camera_link"/>
-      <origin xyz="0.012 0.0143 0.035" rpy="0 ${-pi/2} ${pi}"/>
+      <origin xyz="0.0 0.0 0.00154" rpy="0 ${-pi/2} ${pi}"/>
     </joint>
 
     <link name="gs_camera_pcloud"/>
     <joint name="gs_camera_pcloud_joint" type="fixed">
-      <parent link="gs_gel_link"/>
+      <parent link="gs_base_link"/>
       <child link="gs_camera_pcloud"/>
-      <origin xyz="0.0115 0.01386 0.035" rpy="0 0 ${pi/2}"/>
+      <origin xyz="0.0 0.0 0.00154" rpy="0 0 ${pi/2}"/>
     </joint>
 
 
@@ -172,10 +172,10 @@
 
   </xacro:macro>
     <xacro:gelsight_camera parent="gs_camera_link"/>
-    <xacro:gelsight_spectre suffix="bottom" parent="gs_base_link" color="1.0 1.0 1.0" r="0" x="-0.0235" y="-0.022" filename="package://gelsight_description/meshes/remain/spectre_bottom.stl"/>
-    <xacro:gelsight_spectre suffix="right"  parent="gs_base_link" color="1.0 0.0 0.0" r="0" x="-0.0235" y="-0.022" filename="package://gelsight_description/meshes/remain/spectre_right.stl"/>
-    <xacro:gelsight_spectre suffix="top"    parent="gs_base_link" color="0.0 1.0 0.0" r="0" x="-0.0235" y="-0.022" filename="package://gelsight_description/meshes/remain/spectre_top.stl"/>
-    <xacro:gelsight_spectre suffix="left"   parent="gs_base_link" color="0.0 0.0 1.0" r="0" x="-0.0235" y="-0.022" filename="package://gelsight_description/meshes/remain/spectre_left.stl"/>
+    <xacro:gelsight_spectre suffix="bottom" parent="gs_base_link" color="1.0 1.0 1.0" r="0" x=" 0.0" y="-0.012" filename="package://gelsight_description/meshes/remain/spectre_bottom.stl"/>
+    <xacro:gelsight_spectre suffix="right"  parent="gs_base_link" color="1.0 0.0 0.0" r="0" x=" 0.009" y=" 0.0" filename="package://gelsight_description/meshes/remain/spectre_right.stl"/>
+    <xacro:gelsight_spectre suffix="top"    parent="gs_base_link" color="0.0 1.0 0.0" r="0" x=" 0.0" y=" 0.012" filename="package://gelsight_description/meshes/remain/spectre_top.stl"/>
+    <xacro:gelsight_spectre suffix="left"   parent="gs_base_link" color="0.0 0.0 1.0" r="0" x="-0.009" y=" 0.0" filename="package://gelsight_description/meshes/remain/spectre_left.stl"/>
   </xacro:macro>
 
 </robot>
