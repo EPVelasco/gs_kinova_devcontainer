@@ -200,3 +200,8 @@ include_directories(
 
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
+install(PROGRAMS
+  scripts/gelsight_controller.py
+  scripts/feature_extractor.py
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)

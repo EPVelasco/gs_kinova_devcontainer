@@ -82,7 +82,8 @@ RUN apt-get update && apt-get install -y \
     ros-noetic-ros-controllers \
     ros-noetic-moveit*\
     ros-noetic-ompl \
-    ros-noetic-gazebo-ros-pkgs
+    ros-noetic-gazebo-ros-pkgs \
+    ros-noetic-joy
 
 RUN pip install opencv-python opencv-contrib-python
 

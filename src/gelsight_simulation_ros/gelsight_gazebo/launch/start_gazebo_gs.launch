@@ -1,5 +1,5 @@
 <launch>
-  <!-- ============ ARGUMENTOS ================= -->
+  <!-- ============ ARGs ================= -->
   <arg name="use_sim_time" default="true"/>
   <arg name="debug" default="false" />
   <arg name="gui" default="true" />
@@ -7,7 +7,7 @@
   <arg name="gs_sim" default="true" />
   <arg name="start_rviz" default="true" />
   
-  <!-- Objeto a insertar y su pose -->
+  <!-- Pose of object -->
   <arg name="object_name" default="aluminum_profile"/>
   <arg name="x" default="0.5"/>
   <arg name="y" default="0.5"/>
@@ -16,21 +16,21 @@
   <arg name="pitch" default="0.0"/>
   <arg name="yaw" default="0.0"/>
 
-  <!-- ============ GENERAR MUNDO CON OBJETO STL ============ -->
+  <!-- ============ STL Object ============ -->
   <node pkg="kortex_gazebo" type="generate_objects_world.py" name="generate_world_node" output="screen"
         args="$(arg object_name) $(arg x) $(arg y) $(arg z) $(arg roll) $(arg pitch) $(arg yaw)"/>
 
   <!-- Ruta al mundo generado dinámicamente -->
   <arg name="world_file" default="/tmp/generated_world.world"/>
 
-  <!-- ============ CARGAR SENSOR ============ -->
+  <!-- ============ SENSOR ============ -->
   <param name="robot_description" command="$(find xacro)/xacro '$(find gelsight_description)/urdf/gelsight_free.xacro'" />
 
   <!-- Publicadores de TF -->
   <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher" output="screen"/>
   <node pkg="joint_state_publisher" type="joint_state_publisher" name="joint_state_publisher" output="screen"/>
 
-  <!-- ============ LANZAR GAZEBO ============ -->
+  <!-- ============ LAUNCH GAZEBO ============ -->
   <include file="$(find gazebo_ros)/launch/empty_world.launch">
     <arg name="world_name" value="$(arg world_file)" />
     <arg name="paused" value="$(arg paused)"/>
@@ -49,5 +49,8 @@
   <!-- Run rviz -->
   <node name="rviz" pkg="rviz" type="rviz" args="-d $(find gelsight_gazebo)/rviz/gs_rviz_test.rviz" if="$(arg start_rviz)" />
 
+  <!-- RUN feature extractor and twist control -->
+  <node pkg="gelsight_simulation" type="feature_extractor.py" name="image_subscriber_publisher" output="screen" />
+  <node pkg="gelsight_simulation" type="twist_control.py"     name="gs_twist_controller" output="screen" />
 
 </launch>

@@ -59,10 +59,41 @@ To launch a shoe simulation, you need set the RPY angles for the stl:
 roslaunch kortex_gazebo spawn_gs_Kinova.launch start_rviz:=true use_trajectory_controller:=false gs_sim:=true object_name:="shoe" x:=0.50 y:=0.0 z:=0.0582 roll:=0.012055 pitch:=0.035225 yall:=0.0
 ````
 
-To launch a free body gelsight sensor
+To launch a free body gelsight sensor:
+
 ```bash
 roslaunch gelsight_gazebo start_gazebo_gs.launch
-````
+```
+
+This launch file will:
+
+* **Generate a dynamic Gazebo world** with the selected object (e.g., aluminum profile, shoe, etc.).
+* **Spawn the Gelsight sensor as a free-floating URDF model**.
+* **Launch Gazebo** with the custom world and GUI.
+* **Start RViz** with a preconfigured layout (optional).
+* **Run the feature extractor node** that subscribes to `/gelsight/depth/image_raw`, detects edges, and publishes feature points.
+* **Run the twist controller node** that commands movement based on the detected features.
+
+### `start_gazebo_gs.launch` arguments
+
+You can customize the launched simulation by setting the following launch arguments:
+
+| Argument               | Default             | Description                                                  |
+| ---------------------- | ------------------- | ------------------------------------------------------------ |
+| `object_name`          | `aluminum_profile`  | Name of the STL object to load in the world                  |
+| `x`, `y`, `z`          | `0.5`, `0.5`, `0.0` | Pose of the object in the world                              |
+| `roll`, `pitch`, `yaw` | `0.0`, `0.0`, `0.0` | Orientation of the object                                    |
+| `start_rviz`           | `true`              | Whether to launch RViz automatically                         |
+| `gs_sim`               | `true`              | Whether to start the Gelsight feature extractor + controller |
+| `paused`               | `false`             | Start Gazebo paused                                          |
+| `gui`                  | `true`              | Show the Gazebo GUI                                          |
+| `debug`                | `false`             | Launch with Gazebo debugger                                  |
+
+You can also pass the RPY angles to rotate the object (e.g., for simulating a shoe):
+
+```bash
+roslaunch gelsight_gazebo start_gazebo_gs.launch object_name:=shoe x:=0.50 y:=0.0 z:=0.0582 roll:=0.012055 pitch:=0.035225 yaw:=0.0
+```
 
 This command will:
 
@@ -78,6 +109,7 @@ The `object_name` argument specifies which object to spawn in front of the robot
 * `"aluminum_profile"` — a long aluminum edge profile, useful for straight edge tracking.
 * `"curve1"` 
 * `"curve2"` 
+* `"shoe"`  - for this object,  yous must use `z:=0.0582 roll:=0.012055 pitch:=0.035225 yaw:=0.0`
 
 ---
 
