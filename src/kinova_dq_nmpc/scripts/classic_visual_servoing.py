@@ -31,18 +31,19 @@ class ZeroCmdFromFeatures:
         u_c = u - self.u_max
         v_c = v - self.v_max
 
-        j11 = -(u_c * v_c)/self.f
-        j12 = (self.f**2 + u_c**2)/self.f
+
+        j11 = (self.f**2 + u_c**2)/self.f
+        j12 = (u_c * v_c)/self.f
         j13 = v_c
-        j14 = (self.f/z)
-        j15 = 0.0
+        j14 = 0.0
+        j15 = -(self.f/z)
         j16 = (u_c/z)
 
-        j21 = -(self.f**2 + v_c**2)/self.f
-        j22 = (u_c * v_c)/self.f
+        j21 = (u_c * v_c)/self.f
+        j22 = (self.f**2 + v_c**2)/self.f
         j23 = -u_c
-        j24 = 0.0
-        j25 = (self.f/z)
+        j24 = (self.f/z)
+        j25 = 0.0
         j26 = (v_c/z)
 
         J = np.array([[j11, j12, j13, j14, j15, j16], [j21, j22, j23, j24, j25, j26]])
@@ -65,26 +66,31 @@ class ZeroCmdFromFeatures:
         J_p2 = self.jacobian(p2, z2)
         J_p3 = self.jacobian(p3, z3)
 
-        J = np.vstack((J_p1, J_p2, J_p3))  # 6×6
+        J = np.vstack((J_p1, J_p2))  # 6×6
 
         # Desired features (centered)
         desired = np.array([self.u_max, self.v_max]).reshape(2,1)
-        features = np.vstack((p1, p2, p3))              
-        desired_features = np.vstack((desired, desired, desired))
+        features = np.vstack((p1, p2))              
+        desired_features = np.vstack((desired, desired))
 
         error = desired_features - features  # 6×1
         # Gain matrix
-        K = 0.01*np.diag([0.0, 1.0, 0.0, 1.0, 0.0, 1.0])  # 6×6
+        K = 0.005*np.diag([0.0, 1.0, 0.0, 1.0])  # 6×6
 
         # Control law
-        u = np.linalg.pinv(J) @ (K @ error)
-        print(u)
+        I = np.eye(6, 6)
+        J_inv = np.linalg.pinv(J)
+        K2 = 10*np.diag([1.0, 1.0, 0.0, 0.0, 1.0, 1.0])  # 6×6
+        null_space = np.array([[0.0], [0.0], [0.0], [0.0], [-0.001], [0.0]])
+        u = J_inv @ (K @ error)  + (I - J_inv@J)@K2@null_space
+        print(J_inv.shape)
 
         # Create a Twist with all zeros
         zero_twist = Twist()
         zero_twist.linear.x = u[3, 0]
         zero_twist.linear.y = u[4, 0]
         zero_twist.linear.z = u[5, 0]
+
         zero_twist.angular.x = u[0, 0]
         zero_twist.angular.y = u[1, 0]
         zero_twist.angular.z = u[2, 0]
