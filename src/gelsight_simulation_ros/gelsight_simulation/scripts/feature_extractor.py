@@ -21,7 +21,7 @@ class ImageSubscriberPublisher:
 
         # Subscribers and publishers
         self.image_sub = rospy.Subscriber('/gelsight/depth/image_raw', Image, self.image_callback, queue_size=1)
-        self.image_pub = rospy.Publisher('/gs_new_img', Image, queue_size=1)
+        self.image_pub = rospy.Publisher('/gs_feature_img', Image, queue_size=1)
         self.coord_pub = rospy.Publisher('/gs_feature_coords', Float32MultiArray, queue_size=1)
 
         rospy.loginfo("Node initialized: Subscribed to /gs_depth_image and publishing to /gs_new_img")
@@ -111,9 +111,12 @@ class ImageSubscriberPublisher:
                 x_center = int(x_center)
                 y_center = int(y_center)
                 cv2.circle(filtered, (x_center, y_center), 3, (0, 255, 0), -1)
-
+                
                 # Compute midpoints of the shorter sides, slightly pulled toward center
-                f = 0.6  # shrink factor (0 = corners, 1 = center)
+                # f = 0.6  # shrink factor (0 = corners, 1 = center)
+                f = h_rect/100.0           # f factor with edge height depends on
+                f = 1.0 - max(0.2, min(f, 0.9)) # f factor limitations
+                                
                 dx_minor = (w_rect / 2.0) * (1 - f) * math.cos(alpha)
                 dy_minor = (w_rect / 2.0) * (1 - f) * math.sin(alpha)
 

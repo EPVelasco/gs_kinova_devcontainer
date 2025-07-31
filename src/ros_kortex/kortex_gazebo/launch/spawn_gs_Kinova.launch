@@ -190,5 +190,7 @@
 
     <!-- Run gelsight_simulation -->
     <include file="$(find gelsight_simulation)/launch/gs_gel_link.launch" if="$(arg gs_sim)"/>
+    <!-- Run feature extractor -->
+    <node pkg="gelsight_simulation" type="feature_extractor.py"        name="image_subscriber_publisher" output="screen" />
 
 </launch>

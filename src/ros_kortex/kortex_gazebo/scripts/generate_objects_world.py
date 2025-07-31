@@ -80,7 +80,7 @@ with open("/tmp/generated_world.world", "w") as f:
 # ---------------------------
 rospy.init_node("combined_marker_node")
 pub = rospy.Publisher("visualization_marker", Marker, queue_size=2)
-rate = rospy.Rate(10)
+rate = rospy.Rate(100)
 
 quat = tf.transformations.quaternion_from_euler(float(roll), float(pitch), float(yaw))
 
@@ -132,7 +132,7 @@ gel_marker.scale.z = 0.001
 gel_marker.color.r = 0.8
 gel_marker.color.g = 0.8
 gel_marker.color.b = 1.0
-gel_marker.color.a = 0.3
+gel_marker.color.a = 0.5
 gel_marker.pose.orientation.w = 1.0
 
 

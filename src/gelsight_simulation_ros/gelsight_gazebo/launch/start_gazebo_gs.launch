@@ -50,7 +50,7 @@
   <node name="rviz" pkg="rviz" type="rviz" args="-d $(find gelsight_gazebo)/rviz/gs_rviz_test.rviz" if="$(arg start_rviz)" />
 
   <!-- RUN feature extractor and twist control -->
-  <node pkg="gelsight_simulation" type="feature_extractor.py" name="image_subscriber_publisher" output="screen" />
-  <node pkg="gelsight_simulation" type="twist_control.py"     name="gs_twist_controller" output="screen" />
+  <node pkg="gelsight_simulation" type="feature_extractor.py"        name="image_subscriber_publisher" output="screen" />
+  <node pkg="gelsight_simulation" type="twist_control_free_body.py"  name="gs_twist_controller"        output="screen" />
 
 </launch>
