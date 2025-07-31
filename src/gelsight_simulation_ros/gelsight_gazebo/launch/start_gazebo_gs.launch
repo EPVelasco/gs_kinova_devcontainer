@@ -42,7 +42,7 @@
   <!-- ============ SPAWN DEL SENSOR EN GAZEBO ============ -->
   <arg name="pi" default="3.1416" />
   <node name="spawn_gelsight" pkg="gazebo_ros" type="spawn_model" output="screen"
-      args="-param robot_description -urdf -model gelsight_sensor -x 0.461190 -y 0.807081 -z 0.080191 -R $(arg pi) -P 0.843364 -Y $(arg pi)" />
+      args="-param robot_description -urdf -model gelsight_sensor -x 0.461190 -y 0.807081 -z 0.080191 -R $(arg pi) -P -0.843364 -Y 0" />
   <!-- Run gelsight_simulation -->
     <include file="$(find gelsight_simulation)/launch/gs_gel_link.launch" if="$(arg gs_sim)"/>
 

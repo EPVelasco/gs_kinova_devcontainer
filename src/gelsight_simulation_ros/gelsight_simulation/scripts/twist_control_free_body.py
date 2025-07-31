@@ -40,7 +40,7 @@ class GelsightController:
         rospy.Subscriber("/cmd_vel", Twist, self.cmd_vel_cb)
         rospy.Subscriber("/gazebo/model_states", ModelStates, self.model_states_cb)
         rospy.Subscriber("/gazebo/link_states", LinkStates, self.link_states_cb)
-        self.pub = rospy.Publisher("/applied_control_force_gs", Wrench, queue_size=1)
+        self.pub = rospy.Publisher("/applied_force", Wrench, queue_size=1)
 
         # Start control loop
         self.control_loop()
