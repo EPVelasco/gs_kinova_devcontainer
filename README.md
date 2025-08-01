@@ -127,3 +127,9 @@ roslaunch ToDo.launch
 ## GPU errors
 
 If you have problems with Nvidia dependencies, or if you don't have a physical GPU, you can create your container without the NVIDIA flags. The `devcontainer_w-o_GPU.json` file has instructions for creating the container. Just replace the contents of the original `devcontainer.json` file with `devcontainer_w-o_GPU.json`.
+
+## Acknowledgements
+
+We would like to acknowledge the following repositories for their contributions to this project:
+- [Kinova ROS Kortex](https://github.com/Kinovarobotics/ros_kortex)
+- [gelsight_simulation](https://github.com/danfergo/gelsight_simulation)
