@@ -64,6 +64,7 @@ To launch a free body gelsight sensor:
 ```bash
 roslaunch gelsight_gazebo start_gazebo_gs.launch
 ```
+This will spawn the GelSight sensor in the simulation environment as a body with full 6-DOF (degrees of freedom) motion.
 
 This launch file will:
 
@@ -101,6 +102,10 @@ This command will:
 * Launch **RViz** for visualization (`start_rviz:=true`).
 * Disable the default trajectory controller (`use_trajectory_controller:=false`) so the robot can be controlled directly by the visual servoing node.
 * Enable the Gelsight simulation mode (`gs_sim:=true`).
+
+
+#### Motion Control
+You can control the sensor’s linear and angular velocities by publishing geometry_msgs/Twist messages to the following topic `/cmd_vel`. These velocity commands are interpreted in the `base_link` frame, which is aligned and positioned identically to the `gs_camera_pcloud` frame. This ensures that velocity commands are applied relative to the current orientation of the sensor.
 
 ### `object_name` option
 

@@ -2,7 +2,7 @@
 <robot xmlns:xacro="http://ros.org/wiki/xacro" name="gelsight_sensor">
 
   <!-- Incluir la macro principal -->
-  <xacro:include filename="$(find gelsight_description)/urdf/gelsight_sensor.xacro" />
+  <xacro:include filename="$(find gelsight_description)/urdf/gelsight_sensor_free_body.xacro" />
 
   <!-- Definir base_link -->
   <link name="base_link">

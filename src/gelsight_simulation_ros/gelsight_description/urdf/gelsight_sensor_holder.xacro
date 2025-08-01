@@ -69,16 +69,24 @@
       </inertial>
     </link>
 
-     <joint name="gs_holder_joint" type="fixed">
+    <link name="gs_camera_pcloud"/>
+    <joint name="gs_camera_pcloud_joint" type="fixed">
       <parent link="${parent}"/>
-      <child link="gs_kinova_holder_link"/>
-      <origin xyz="0.0 0.0 0.0127151" rpy="0 0 0"/>
+      <child link="gs_camera_pcloud"/>
+      <origin xyz="0.0 0.0 0.035" rpy="0 0 1.571"/>
     </joint>
 
-    <joint name="gs_base_joint" type="fixed">
-      <parent link="gs_kinova_holder_link"/>
+    <joint name="gs_camera_base_joint" type="fixed">
+      <parent link="gs_camera_pcloud"/>
       <child link="gs_base_link"/>
-      <origin xyz="0.0 0.0 0.0205405" rpy="0 0 0"/>
+      <origin xyz="0.0 0.0 -0.00154" rpy="0 0 -${pi/2}"/>
+    </joint>
+
+
+    <joint name="gs_base_joint" type="fixed">
+      <parent link="gs_base_link"/>
+      <child link="gs_kinova_holder_link"/>
+      <origin xyz="0.0 0.0 -0.0205405" rpy="0 0 0"/>
     </joint>
 
     <joint name="gs_cap_joint" type="fixed">
@@ -110,12 +118,12 @@
       <origin xyz="0.0 0.0 0.00154" rpy="0 ${-pi/2} ${pi}"/>
     </joint>
 
-    <link name="gs_camera_pcloud"/>
+    <!-- <link name="gs_camera_pcloud"/>
     <joint name="gs_camera_pcloud_joint" type="fixed">
       <parent link="gs_base_link"/>
       <child link="gs_camera_pcloud"/>
       <origin xyz="0.0 0.0 0.00154" rpy="0 0 ${pi/2}"/>
-    </joint>
+    </joint> -->
 
 
      <!-- ++++++++++++++++++++++++++++++ Camera simulation +++++++++++++++++++++++++++++++++++-->

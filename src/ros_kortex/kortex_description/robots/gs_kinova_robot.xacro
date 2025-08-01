@@ -63,7 +63,7 @@
           </material>
             
     <!-- +++++++++++++++++++++++++++++++++++++++++++++++++++++GS mini +++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->	    
-<xacro:include filename="$(find gelsight_description)/urdf/gelsight_sensor.xacro"/>
+<xacro:include filename="$(find gelsight_description)/urdf/gelsight_sensor_holder.xacro"/>
 <xacro:gelsight_sensor parent="tool_frame"/>
 <!-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++	 -->
 

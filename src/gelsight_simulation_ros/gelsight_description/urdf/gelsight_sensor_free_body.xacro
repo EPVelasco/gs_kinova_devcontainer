@@ -1,0 +1,160 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://ros.org/wiki/xacro">
+
+  <xacro:include filename="$(find gelsight_description)/urdf/gs_mini_spectre.xacro"/>
+
+  <xacro:macro name="gelsight_sensor" params="parent">
+
+    <link name="gs_base_link">
+      <visual>
+        <geometry>
+          <mesh filename="package://gelsight_description/meshes/remain/gs_base.stl" scale="0.001 0.001 0.001"/>
+        </geometry>
+        <material name="">
+          <color rgba="0.5 0.5 0.5 1"/>
+        </material>
+      </visual>
+      <inertial>
+        <mass value="0.1"/>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <inertia ixx="0.001" ixy="0.0" ixz="0.0"
+                 iyy="0.001" iyz="0.0"
+                 izz="0.001"/>
+      </inertial>
+    </link>
+
+    <link name="gs_cap_link">
+      <visual>
+        <geometry>
+          <mesh filename="package://gelsight_description/meshes/remain/gs_cap.stl" scale="0.001 0.001 0.001"/>
+        </geometry>
+        <material name="">
+          <color rgba="0 0 0 1"/>
+        </material>
+      </visual>
+      <inertial>
+        <mass value="0.1"/>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <inertia ixx="0.001" ixy="0.0" ixz="0.0"
+                 iyy="0.001" iyz="0.0"
+                 izz="0.001"/>
+      </inertial>
+    </link>
+
+     <link name="gs_gel_link">
+      <inertial>
+        <mass value="0.1"/>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <inertia ixx="0.001" ixy="0.0" ixz="0.0"
+                iyy="0.001" iyz="0.0"
+                izz="0.001"/>
+      </inertial>
+    </link>
+
+
+    <link name="gs_camera_pcloud"/>
+    <joint name="gs_camera_pcloud_joint" type="fixed">
+      <parent link="${parent}"/>
+      <child link="gs_camera_pcloud"/>
+      <origin xyz="0.0 0.0 0.0" rpy="0 0 0"/>
+    </joint>
+
+    <joint name="gs_camera_base_joint" type="fixed">
+      <parent link="gs_camera_pcloud"/>
+      <child link="gs_base_link"/>
+      <origin xyz="0.0 0.0 -0.00154" rpy="0 0 -${pi/2}"/>
+    </joint>
+
+
+    <joint name="gs_cap_joint" type="fixed">
+      <parent link="gs_base_link"/>
+      <child link="gs_cap_link"/>
+      <origin xyz="0.0 0.0 0.0129196" rpy="0 0 0"/>
+    </joint>
+
+    <joint name="gs_gel_joint" type="fixed">
+      <parent link="gs_base_link"/>
+      <child link="gs_gel_link"/>
+      <origin xyz="0.0 0.0 0.0184587" rpy="0 0 0"/>
+    </joint>
+
+ 
+      <!-- +++++++++++++++++++++++camera link+++++++++++++++++++++++++++++ -->
+
+     <link name="gs_camera_link">
+      <visual>
+        <geometry>
+          <mesh filename="package://gelsight_description/meshes/remain/gs_glass.stl" scale="0.000001 0.0000001 0.0000001"/>
+        </geometry>
+      </visual>
+    </link>
+
+    <joint name="gs_camera_joint" type="fixed">
+      <parent link="gs_base_link"/>
+      <child link="gs_camera_link"/>
+      <origin xyz="0.0 0.0 0.00154" rpy="0 ${-pi/2} ${pi}"/>
+    </joint>
+
+
+
+     <!-- ++++++++++++++++++++++++++++++ Camera simulation +++++++++++++++++++++++++++++++++++-->
+
+     <xacro:macro name="gelsight_camera" params="parent">
+
+    <gazebo reference="${parent}">
+      <sensor type="depth" name="gelsight_camera_sensor">
+      <pose>0.0 0.0 0.0 0 0 0 </pose>
+        <always_on>1</always_on>
+        <update_rate>30.0</update_rate>
+        <visualize>1</visualize>
+        <topic>/depth_camera</topic>
+        <camera name="head">
+          <horizontal_fov>0.959931</horizontal_fov>
+          <image>
+            <width>320</width>
+            <height>240</height>
+            <format>R8G8B8</format>
+          </image>
+          <clip>
+            <near>0.018</near>
+            <far>0.020</far>
+          </clip>
+          <depth_camera>
+            <output>depths</output>
+          </depth_camera>
+        </camera>
+        <plugin name="gelsight_link_controller" filename="libgazebo_ros_openni_kinect.so">
+        <baseline>0.0</baseline>
+          <alwaysOn>true</alwaysOn>
+          <updateRate>30.0</updateRate>
+          <cameraName>gelsight_ir</cameraName>
+          <imageTopicName>/gelsight/image/image_raw</imageTopicName>
+          <cameraInfoTopicName>/gelsight/depth/camera_info</cameraInfoTopicName>
+          <depthImageTopicName>/gelsight/depth/image_raw</depthImageTopicName>
+          <depthImageInfoTopicName>/gelsight/depth/camera_info</depthImageInfoTopicName>
+          <pointCloudTopicName>/gelsight/depth/points</pointCloudTopicName>
+          <frameName>gs_camera_pcloud</frameName>
+          <pointCloudCutoff>0.0</pointCloudCutoff>
+          <distortionK1>0</distortionK1>
+          <distortionK2>0</distortionK2>
+          <distortionK3>0</distortionK3>
+          <distortionT1>0</distortionT1>
+          <distortionT2>0</distortionT2>
+          <CxPrime>0</CxPrime>
+          <Cx>0</Cx>
+          <Cy>0</Cy>
+          <focalLength>0</focalLength>
+          <hackBaseline>0</hackBaseline>
+        </plugin>
+      </sensor>
+    </gazebo>
+
+  </xacro:macro>
+    <xacro:gelsight_camera parent="gs_camera_link"/>
+    <xacro:gelsight_spectre suffix="bottom" parent="gs_base_link" color="1.0 1.0 1.0" r="0" x=" 0.0" y="-0.012" filename="package://gelsight_description/meshes/remain/spectre_bottom.stl"/>
+    <xacro:gelsight_spectre suffix="right"  parent="gs_base_link" color="1.0 0.0 0.0" r="0" x=" 0.009" y=" 0.0" filename="package://gelsight_description/meshes/remain/spectre_right.stl"/>
+    <xacro:gelsight_spectre suffix="top"    parent="gs_base_link" color="0.0 1.0 0.0" r="0" x=" 0.0" y=" 0.012" filename="package://gelsight_description/meshes/remain/spectre_top.stl"/>
+    <xacro:gelsight_spectre suffix="left"   parent="gs_base_link" color="0.0 0.0 1.0" r="0" x="-0.009" y=" 0.0" filename="package://gelsight_description/meshes/remain/spectre_left.stl"/>
+  </xacro:macro>
+
+</robot>
