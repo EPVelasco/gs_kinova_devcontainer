@@ -86,6 +86,7 @@ RUN apt-get update && apt-get install -y \
     ros-noetic-joy
 
 RUN pip install opencv-python opencv-contrib-python
+RUN pip install pygame
 
 USER $USERNAME
 RUN conan config set general.revisions_enabled=1
