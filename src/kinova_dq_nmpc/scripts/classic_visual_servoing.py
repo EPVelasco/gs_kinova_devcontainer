@@ -26,24 +26,22 @@ class ZeroCmdFromFeatures:
         u = p[0, 0]
         v = p[1, 0]
 
-
         # Get pixels respect to the center of the image
         u_c = u - self.u_max
         v_c = v - self.v_max
 
-
-        j11 = (self.f**2 + u_c**2)/self.f
-        j12 = (u_c * v_c)/self.f
+        j11 = (u_c * v_c)/self.f
+        j12 = -(self.f**2 + u_c**2)/self.f
         j13 = v_c
-        j14 = 0.0
-        j15 = -(self.f/z)
+        j14 = -(self.f/z)
+        j15 = 0.0
         j16 = (u_c/z)
 
-        j21 = (u_c * v_c)/self.f
-        j22 = (self.f**2 + v_c**2)/self.f
+        j21 = (self.f**2 + v_c**2)/self.f
+        j22 = -(u_c * v_c)/self.f
         j23 = -u_c
-        j24 = (self.f/z)
-        j25 = 0.0
+        j24 = 0.0
+        j25 = -(self.f/z)
         j26 = (v_c/z)
 
         J = np.array([[j11, j12, j13, j14, j15, j16], [j21, j22, j23, j24, j25, j26]])
@@ -58,18 +56,14 @@ class ZeroCmdFromFeatures:
         p2 = np.array([msg.data[6], msg.data[7]]).reshape(2,1)
         z2 = msg.data[9]
 
-        p3 = np.array([msg.data[2], msg.data[3]]).reshape(2,1)
-        z3 = z2
-
         # Compute Jacobians
         J_p1 = self.jacobian(p1, z1)  # expect 2×6
         J_p2 = self.jacobian(p2, z2)
-        J_p3 = self.jacobian(p3, z3)
 
         J = np.vstack((J_p1, J_p2))  # 6×6
 
         # Desired features (centered)
-        desired = np.array([self.u_max, self.v_max]).reshape(2,1)
+        desired = np.array([self.u_max, 50.0]).reshape(2,1)
         features = np.vstack((p1, p2))              
         desired_features = np.vstack((desired, desired))
 
@@ -80,10 +74,9 @@ class ZeroCmdFromFeatures:
         # Control law
         I = np.eye(6, 6)
         J_inv = np.linalg.pinv(J)
-        K2 = 10*np.diag([1.0, 1.0, 0.0, 0.0, 1.0, 1.0])  # 6×6
-        null_space = np.array([[0.0], [0.0], [0.0], [0.0], [-0.001], [0.0]])
+        K2 = 10*np.diag([1.0, 1.0, 0.0, 1.0, 0.0, 1.0])  # 6×6
+        null_space = np.array([[0.0], [0.0], [0.0], [0.0001], [0.0], [0.0]])
         u = J_inv @ (K @ error)  + (I - J_inv@J)@K2@null_space
-        print(J_inv.shape)
 
         # Create a Twist with all zeros
         zero_twist = Twist()
