@@ -6,6 +6,8 @@
   <arg name="paused" default="false" />
   <arg name="gs_sim" default="true" />
   <arg name="start_rviz" default="true" />
+  <arg name="joystick_control_val" default="false" />
+  <arg name="keyboard_control_val" default="false" />
   
   <!-- Pose of object -->
   <arg name="object_name" default="aluminum_profile"/>
@@ -39,7 +41,7 @@
     <arg name="debug" value="$(arg debug)"/>
   </include>
 
-  <!-- ============ SPAWN DEL SENSOR EN GAZEBO ============ -->
+  <!-- ============ SPAWN SENSOR IN GAZEBO ============ -->
   <arg name="pi" default="3.14159256535898" />
   <node name="spawn_gelsight" pkg="gazebo_ros" type="spawn_model" output="screen"
       args="-param robot_description -urdf -model gelsight_sensor -x 0.486394 -y 0.807081 -z 0.057752 -R -2.3 -P 0.0 -Y -1.57079632679" />
@@ -52,5 +54,22 @@
   <!-- RUN feature extractor and twist control -->
   <node pkg="gelsight_simulation" type="feature_extractor.py"        name="image_subscriber_publisher" output="screen" />
   <node pkg="gelsight_simulation" type="twist_control_free_body.py"  name="gs_twist_controller"        output="screen" />
+
+
+  <!-- Launch joystick driver -->
+    <node pkg="joy" type="joy_node" name="joy_node" output="screen" if="$(arg joystick_control_val)">
+          <!-- Optional parameters -->
+          <!-- <param name="dev" value="/dev/input/js0"/> -->
+          <!-- <param name="deadzone" value="0.05"/> -->
+          <!-- <param name="autorepeat_rate" value="20"/> -->
+    </node>
+
+    <!-- Launch your script only if joystick_control is true -->
+    <node pkg="gelsight_simulation" type="joystick_control.py" name="joystick_control" output="screen"
+            if="$(arg joystick_control_val)" />
+
+  <!-- Keyboard twist control -->
+    <node pkg="gelsight_simulation" type="keyboard_gs_twist.py" name="keyboard_gs_twist" output="screen"
+            if="$(arg keyboard_control_val)" /> 
 
 </launch>

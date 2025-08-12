@@ -7,29 +7,48 @@ class KeyboardToCmdVel:
     def __init__(self):
         rospy.init_node("keyboard_to_cmd_vel")
 
-        # Initialize pygame window
-        pygame.init()
-        self.screen = pygame.display.set_mode((400, 150))
-        pygame.display.set_caption("Keyboard Teleop for /cmd_vel")
-
-        # Font for on-screen instructions
-        self.font = pygame.font.SysFont("Arial", 18)
-        self.text_lines = [
-            self.font.render("        Click this window to enable keyboard input        ", True, (255, 255, 255)),
-            self.font.render("        Then use the keys to control the robot    ", True, (255, 255, 255))
-        ]
-
-        # Get rectangles for centering
-        self.text_rects = []
-        for i, line in enumerate(self.text_lines):
-            rect = line.get_rect(center=(200, 50 + i * 30))
-            self.text_rects.append(rect)
-
-        self.clock = pygame.time.Clock()
-
         # Velocity scales
         self.max_v = 0.01  # linear velocity in m/s
         self.max_w = 0.5   # angular velocity in rad/s
+
+        # Initialize pygame window (taller to fit instructions)
+        pygame.init()
+        self.screen = pygame.display.set_mode((600, 420))
+        pygame.display.set_caption("Keyboard Teleop for /cmd_vel")
+
+        # Monospaced font for alignment
+        self.font = pygame.font.SysFont("Courier New", 16)
+
+        # Build instruction text using current scales
+        v = self.max_v
+        w = self.max_w
+        self.text_lines = [
+            "CLICK THIS WINDOW TO ENABLE KEYBOARD INPUT",
+            "",
+            "LINEAR MOTION (m/s):",
+            f"  W: +X ({v:+.3f})     S: -X ({-v:+.3f})",
+            f"  A: +Y ({v:+.3f})     D: -Y ({-v:+.3f})",
+            f"  Q: +Z ({v:+.3f})     E: -Z ({-v:+.3f})",
+            "",
+            "ANGULAR MOTION (rad/s):",
+            f"  LEFT:  +Z yaw ({w:+.3f})   RIGHT: -Z yaw ({-w:+.3f})",
+            f"  UP:    +X roll({w:+.3f})   DOWN:  -X roll({-w:+.3f})",
+            f"  Z:     +Y pitch({w:+.3f})  C:     -Y pitch({-w:+.3f})",
+            "",
+            "NOTES:",
+            "  • Linear axes: X=forward/back, Y=left/right, Z=up/down",
+            "  • Angular axes: roll(X), pitch(Y), yaw(Z)",
+            "  • Messages are published to /cmd_vel at 20 Hz",
+        ]
+
+        # Pre-render text surfaces and center horizontally
+        self.text_surfaces = [self.font.render(line, True, (255, 255, 255)) for line in self.text_lines]
+        self.text_rects = []
+        for i, surf in enumerate(self.text_surfaces):
+            rect = surf.get_rect(center=(260, 30 + i * 24))
+            self.text_rects.append(rect)
+
+        self.clock = pygame.time.Clock()
 
         # ROS publisher
         self.pub = rospy.Publisher("/cmd_vel", Twist, queue_size=1)
@@ -38,10 +57,10 @@ class KeyboardToCmdVel:
         while not rospy.is_shutdown():
             twist = Twist()
 
-            # Fill background and render instructions
+            # Draw background and instructions
             self.screen.fill((0, 0, 0))
-            for line, rect in zip(self.text_lines, self.text_rects):
-                self.screen.blit(line, rect)
+            for surf, rect in zip(self.text_surfaces, self.text_rects):
+                self.screen.blit(surf, rect)
             pygame.display.flip()
 
             # Get pressed keys
@@ -56,22 +75,22 @@ class KeyboardToCmdVel:
             if keys[pygame.K_e]: twist.linear.z = -self.max_v
 
             # Angular motion
-            if keys[pygame.K_LEFT]: twist.angular.z = self.max_w
+            if keys[pygame.K_LEFT]:  twist.angular.z = self.max_w
             if keys[pygame.K_RIGHT]: twist.angular.z = -self.max_w
-            if keys[pygame.K_UP]: twist.angular.x = self.max_w
-            if keys[pygame.K_DOWN]: twist.angular.x = -self.max_w
-            if keys[pygame.K_z]: twist.angular.y = self.max_w
-            if keys[pygame.K_c]: twist.angular.y = -self.max_w
+            if keys[pygame.K_UP]:    twist.angular.x = self.max_w
+            if keys[pygame.K_DOWN]:  twist.angular.x = -self.max_w
+            if keys[pygame.K_z]:     twist.angular.y = self.max_w
+            if keys[pygame.K_c]:     twist.angular.y = -self.max_w
 
             # Publish Twist message
             self.pub.publish(twist)
 
-            # Process pygame events
+            # Handle window events
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     rospy.signal_shutdown("Window closed")
 
-            # Maintain loop at 20 Hz
+            # 20 Hz loop
             self.clock.tick(20)
 
 if __name__ == "__main__":

@@ -89,6 +89,9 @@ You can customize the launched simulation by setting the following launch argume
 | `paused`               | `false`             | Start Gazebo paused                                          |
 | `gui`                  | `true`              | Show the Gazebo GUI                                          |
 | `debug`                | `false`             | Launch with Gazebo debugger                                  |
+| `joystick_control_val`                | `false`             | Launch Joystick control node (physical joystick required)                                 |
+| `keyboard_control_val`                | `false`             | Launch Keyboard control node (pygame library is required)                                  |
+
 
 You can also pass the RPY angles to rotate the object (e.g., for simulating a shoe):
 
