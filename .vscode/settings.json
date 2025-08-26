@@ -7,6 +7,7 @@
         "/home/catkin_ws/devel/lib/python3/dist-packages",
         "/opt/ros/noetic/lib/python3/dist-packages"
     ],
+    "cmake.sourceDirectory": "/home/fer/PHD_RESEARCH/Visual_servoing_inspection/gs_kinova_devcontainer/src/gelsight_simulation_ros/fdm_printer",
     // ✅ Optimización para análisis y consumo bajo
     // "python.analysis.autoSearchPaths": false,
     // "python.analysis.useLibraryCodeForTypes": false,
