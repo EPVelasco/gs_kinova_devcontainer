@@ -56,9 +56,15 @@ class ZeroCmdFromFeatures:
         u1 = p1[0, 0]
         v1 = p1[1, 0]
 
+        u1 = u1 - self.u_max
+        v1 = v1 - self.v_max
+
         # Get pixels values 
         u2 = p2[0, 0]
         v2 = p2[1, 0]
+
+        u2 = u2 - self.u_max
+        v2 = v2 - self.v_max
 
         j11 = -(v1 - v2)/((u1 - u2)**2 + (v1 - v2)**2)
         j12 = (u1 - u2)/((u1 - u2)**2 + (v1 - v2)**2)
@@ -129,15 +135,15 @@ class ZeroCmdFromFeatures:
 
         J_image = np.vstack((J_p1, J_p2))  # 6×6
 
-        J = J_features@J_image
+        J = jacobian_theta@J_image
 
         # Desired features (centered)
-        desired = np.array([0.0, 0.0]).reshape(2,1)
-        features = np.array([theta, r]).reshape(2,1)              
+        desired = np.array([0.0]).reshape(1,1)
+        features = np.array([theta]).reshape(1,1)              
 
-        error = desired - features  # 6×1
+        error = desired - features  # 1×1
         ## Gain matrix
-        K = 0.01*np.diag([1.0, 1.0])  # 6×6
+        K = 50*np.diag([1.0])  # 1×1
 
         ## Control law
         I = np.eye(6, 6)
@@ -146,9 +152,9 @@ class ZeroCmdFromFeatures:
         null_space = np.array([[0.0], [0.0], [0.0], [0.0], [0.0], [0.0]])
         u = J_inv @ (K @ error)  + (I - J_inv@J)@K2@null_space
 
-        print(theta)
-        print(r)
-        print(u)
+        #print(theta)
+        #print(r)
+        #print(u)
         return u
         
         
@@ -161,7 +167,7 @@ class ZeroCmdFromFeatures:
         p2 = np.array([msg.data[6], msg.data[7]]).reshape(2,1)
         z2 = msg.data[9]
 
-        u = self.r_theta_control(p2, z2, p1, z1)
+        u = self.r_theta_control(p2, z1, p1, z1)
         # Compute Jacobians
         J_p1 = self.jacobian(p1, z1)  # expect 2×6
         J_p2 = self.jacobian(p2, z2)
@@ -180,7 +186,7 @@ class ZeroCmdFromFeatures:
         # Control law
         I = np.eye(6, 6)
         J_inv = np.linalg.pinv(J)
-        K2 = 10*np.diag([1.0, 1.0, 0.0, 0.0, 0.0, 1.0])  # 6×6
+        K2 = 10*np.diag([1.0, 1.0, 0.0, 0.0, 0.0, 10.0])  # 6×6
         null_space = np.array([[0.0], [0.0], [0.0], [0.0], [0.0], [0.0]])
         #u = J_inv @ (K @ error)  + (I - J_inv@J)@K2@null_space
 
@@ -190,8 +196,8 @@ class ZeroCmdFromFeatures:
         zero_twist.linear.y = u[4, 0]
         zero_twist.linear.z = u[5, 0]
 
-        zero_twist.angular.x = u[0, 0]
-        zero_twist.angular.y = u[1, 0]
+        zero_twist.angular.x = 0.0
+        zero_twist.angular.y = 0.0
         zero_twist.angular.z = u[2, 0]
 
         # Publish zero command
