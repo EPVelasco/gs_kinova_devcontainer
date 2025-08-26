@@ -105,38 +105,51 @@ class ImageSubscriberPublisher:
                     alpha += math.pi
 
                 # Invert angle logic (positive slope → negative angle)
-                alpha = -alpha
+                #alpha = -alpha
 
                 # Draw center point of the rectangle
                 x_center = int(x_center)
                 y_center = int(y_center)
-                cv2.circle(filtered, (x_center, y_center), 3, (0, 255, 0), -1)
+               
                 
                 # Compute midpoints of the shorter sides, slightly pulled toward center
                 # f = 0.6  # shrink factor (0 = corners, 1 = center)
                 f = h_rect/100.0           # f factor with edge height depends on
                 f = 1.0 - max(0.2, min(f, 0.9)) # f factor limitations
                                 
-                dx_minor = (w_rect / 2.0) * (1 - f) * math.cos(alpha)
-                dy_minor = (w_rect / 2.0) * (1 - f) * math.sin(alpha)
+                dx_minor = (w_rect / 2.0) * (1 - f) * math.cos(-alpha)
+                dy_minor = (w_rect / 2.0) * (1 - f) * math.sin(-alpha)
 
-                point1 = (int(x_center + dx_minor), int(y_center - dy_minor))  # upper point
-                point2 = (int(x_center - dx_minor), int(y_center + dy_minor))  # lower point
-
-                cv2.circle(filtered, point1, 4, (255, 255, 255), -1)
-                cv2.circle(filtered, point2, 4, (255, 0, 255), -1)
+                point1 = ((x_center + dx_minor), (y_center - dy_minor))  # upper point
+                point2 = ((x_center - dx_minor), (y_center + dy_minor))  # lower point               
 
                 # Retrieve raw depth at the two points (from original float32 image)
-                depth_data_p1 = float(cv_image[point1[1], point1[0]]) if (0 <= point1[1] < self.image_h and 0 <= point1[0] < self.image_w) else 0.0
-                depth_data_p2 = float(cv_image[point2[1], point2[0]]) if (0 <= point2[1] < self.image_h and 0 <= point2[0] < self.image_w) else 0.0
+                depth_data_p1 = float(cv_image[int(point1[1]), int(point1[0])]) if (0 <= point1[1] < self.image_h and 0 <= point1[0] < self.image_w) else 0.0
+                depth_data_p2 = float(cv_image[int(point2[1]), int(point2[0])]) if (0 <= point2[1] < self.image_h and 0 <= point2[0] < self.image_w) else 0.0
 
                 # Calculate R = signed distance from image center to the line formed by point1 and point2
                 h, w = self.image_h, self.image_w
                 r = (math.sin(alpha) * (point1[0] + point2[0] - w) +
                      math.cos(alpha) * (point1[1] + point2[1] - h)) / 2.0
+                
+                # dif_y = point2[1] - point1[1]
+                # dif_x = point2[0] - point1[0]
+                # angle = math.atan(dif_y/dif_x)                     
 
                 # Publish feature data
                 self.publish_feature_coords(r, alpha, x_center, y_center, point1, point2, depth_data_p1, depth_data_p2)
+                
+                # Draw points
+                
+                cv2.circle(filtered, (int(point1[0]),int(point1[1])), 4, (255, 255, 255), -1)
+                cv2.putText(filtered, "point 1", (5,200), cv2.FONT_HERSHEY_SIMPLEX, 0.4, (255, 255, 255), 1, cv2.LINE_AA)
+                
+                cv2.circle(filtered, (int(point2[0]),int(point2[1])), 4, (255, 0, 255), -1)
+                cv2.putText(filtered, "point 2", (5,220), cv2.FONT_HERSHEY_SIMPLEX, 0.4, (255, 0, 255), 1, cv2.LINE_AA)
+                
+                cv2.circle(filtered, (int(x_center), int(y_center)), 3, (0, 255, 0), -1)
+         
+
 
         # Convert final image with visual features back to ROS and publish
         filtered_msg = self.bridge.cv2_to_imgmsg(filtered, encoding='bgr8')

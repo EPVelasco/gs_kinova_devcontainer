@@ -51,7 +51,7 @@ class ZeroCmdFromFeatures:
 
         return J
 
-    def theta_jacobian(sef, p1, p2):
+    def theta_jacobian(self, p1, p2):
         # Get pixels values 
         u1 = p1[0, 0]
         v1 = p1[1, 0]
@@ -64,6 +64,25 @@ class ZeroCmdFromFeatures:
         j12 = (u1 - u2)/((u1 - u2)**2 + (v1 - v2)**2)
         j13 = (v1 - v2)/((u1 - u2)**2 + (v1 - v2)**2)
         j14 = -(u1 - u2)/((u1 - u2)**2 + (v1 - v2)**2)
+        J = np.array([[j11, j12, j13, j14]])
+        return J
+
+    def r_jacobian(self, p1, p2):
+        # Get pixels values 
+        u1 = p1[0, 0]
+        v1 = p1[1, 0]
+
+        # Get pixels values 
+        u2 = p2[0, 0]
+        v2 = p2[1, 0]
+
+        h = self.h
+        w = self.w
+
+        j11 = ((v1 - v2)*(h*v1 - h*v2 + 2*u1*u2 - u1*w + u2*w + 2*v1*v2 - 2*u2**2 - 2*v1**2))/(2*((u1 - u2)**2 + (v1 - v2)**2)**(3/2))
+        j12 = -((u1 - u2)*(h*v1 - h*v2 - 2*u1*u2 - u1*w + u2*w - 2*v1*v2 + 2*u1**2 + 2*v2**2))/(2*((u1 - u2)**2 + (v1 - v2)**2)**(3/2))
+        j13 = -((v1 - v2)*(h*v1 - h*v2 - 2*u1*u2 - u1*w + u2*w - 2*v1*v2 + 2*u1**2 + 2*v2**2))/(2*((u1 - u2)**2 + (v1 - v2)**2)**(3/2))
+        j14 = ((u1 - u2)*(h*v1 - h*v2 + 2*u1*u2 - u1*w + u2*w + 2*v1*v2 - 2*u2**2 - 2*v1**2))/(2*((u1 - u2)**2 + (v1 - v2)**2)**(3/2))
         J = np.array([[j11, j12, j13, j14]])
         return J
 
@@ -101,6 +120,8 @@ class ZeroCmdFromFeatures:
 
         # Jacobian Control
         jacobian_theta = self.theta_jacobian(p1, p2)
+        jacobian_r = self.r_jacobian(p1, p2)
+        J_features = np.vstack((jacobian_theta, jacobian_r))  # 6×6
 
         # Compute Jacobians
         J_p1 = self.jacobian(p1, z1)  # expect 2×6
@@ -108,24 +129,25 @@ class ZeroCmdFromFeatures:
 
         J_image = np.vstack((J_p1, J_p2))  # 6×6
 
-        J = jacobian_theta@J_image
+        J = J_features@J_image
 
         # Desired features (centered)
-        desired = np.array([0.0]).reshape(1,1)
-        features = np.array([theta]).reshape(1,1)              
+        desired = np.array([0.0, 0.0]).reshape(2,1)
+        features = np.array([theta, r]).reshape(2,1)              
 
         error = desired - features  # 6×1
         ## Gain matrix
-        K = 1*np.diag([1.0])  # 6×6
+        K = 0.01*np.diag([1.0, 1.0])  # 6×6
 
         ## Control law
         I = np.eye(6, 6)
         J_inv = np.linalg.pinv(J)
-        K2 = 10*np.diag([1.0, 1.0, 0.0, 1.0, 0.0, 1.0])  # 6×6
-        null_space = np.array([[0.0], [0.0], [0.0], [0.0001], [0.0], [0.0]])
+        K2 = 100*np.diag([1.0, 1.0, 0.0, 0.0, 0.0, 1.0])  # 6×6
+        null_space = np.array([[0.0], [0.0], [0.0], [0.0], [0.0], [0.0]])
         u = J_inv @ (K @ error)  + (I - J_inv@J)@K2@null_space
 
         print(theta)
+        print(r)
         print(u)
         return u
         
@@ -158,8 +180,8 @@ class ZeroCmdFromFeatures:
         # Control law
         I = np.eye(6, 6)
         J_inv = np.linalg.pinv(J)
-        K2 = 10*np.diag([1.0, 1.0, 0.0, 1.0, 0.0, 1.0])  # 6×6
-        null_space = np.array([[0.0], [0.0], [0.0], [0.0001], [0.0], [0.0]])
+        K2 = 10*np.diag([1.0, 1.0, 0.0, 0.0, 0.0, 1.0])  # 6×6
+        null_space = np.array([[0.0], [0.0], [0.0], [0.0], [0.0], [0.0]])
         #u = J_inv @ (K @ error)  + (I - J_inv@J)@K2@null_space
 
         # Create a Twist with all zeros

@@ -23,14 +23,15 @@
         }
     },
     "containerEnv": {
-        "DISPLAY": "unix:0",
+        "DISPLAY": "unix:1",
         "ROS_LOCALHOST_ONLY": "1",
         "ROS_DOMAIN_ID": "42"
     },
 "runArgs": [
     "--net=host",
     "--pid=host",
-    "--ipc=host"
+    "--ipc=host",
+    "-e", "DISPLAY=${env:DISPLAY}"
 ]
 ,
     "mounts": [
