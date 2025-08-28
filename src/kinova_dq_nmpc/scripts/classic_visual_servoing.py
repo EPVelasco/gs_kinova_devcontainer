@@ -178,12 +178,12 @@ class ZeroCmdFromFeatures:
 
         error = desired - features  # 1×1
         ### Gain matrix
-        K = 1*np.diag([1.0, 0.0])  # 1×1
+        K = 0.1*np.diag([1.0, 1.0])  # 1×1
 
         ### Control law
         I = np.eye(6, 6)
         J_inv = np.linalg.pinv(J)
-        K2 = 100*np.diag([1.0, 1.0, 0.0, 0.0, 0.0, 1.0])  # 6×6
+        K2 = 100*np.diag([1.0, 1.0, 0.0, 0.0, 0.0, 10.0])  # 6×6
         null_space = np.array([[0.0], [0.0], [0.0], [0.0], [0.0], [0.0]])
         u = J_inv @ (K @ error)  + (I - J_inv@J)@K2@null_space
         print(u)
@@ -230,12 +230,12 @@ class ZeroCmdFromFeatures:
         zero_twist.linear.y = u[4, 0]
         zero_twist.linear.z = u[5, 0]
 
-        zero_twist.angular.x = 0.0
-        zero_twist.angular.y = 0.0
+        zero_twist.angular.x = u[0, 0]
+        zero_twist.angular.y = u[1, 0]
         zero_twist.angular.z = u[2, 0]
 
         # Publish zero command
-        #self.cmd_pub.publish(zero_twist)
+        self.cmd_pub.publish(zero_twist)
         rospy.loginfo("Published cmd_vel")
 
 if __name__ == '__main__':
