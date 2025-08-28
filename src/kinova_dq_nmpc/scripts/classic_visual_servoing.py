@@ -82,25 +82,32 @@ class ZeroCmdFromFeatures:
         J = np.array([[j11, j12, j13, j14, j15, j16]])
         return J
 
+    # def phi_jacobian(self, p1, z1, p2, z2):
+    #     # Get pixels values 
+    #     u1 = p1[0, 0]
+    #     v1 = p1[1, 0]
+
+    #     # Get pixels values 
+    #     u2 = p2[0, 0]
+    #     v2 = p2[1, 0]
+
+    #     j11 = (z1 - z2)/((u1 - u2)**2 + (z1 - z2)**2)
+    #     j12 = 0.0
+    #     j13 = -(z1 - z2)/((u1 - u2)**2 + (z1 - z2)**2)
+    #     j14 = 0.0
+    #     j15 = -(u1 - u2)/((u1 - u2)**2 + (z1 - z2)**2)
+    #     j16 = (u1 - u2)/((u1 - u2)**2 + (z1 - z2)**2)
+
+    #     ## [(z1 - z2)/((u1 - u2)^2 + (z1 - z2)^2), 0, -(z1 - z2)/((u1 - u2)^2 + (z1 - z2)^2), 0, -(u1 - u2)/((u1 - u2)^2 + (z1 - z2)^2), (u1 - u2)/((u1 - u2)^2 + (z1 - z2)^2)]
+    #     J = np.array([[j11, j12, j13, j14, j15, j16]])
+    #     return J
+    
     def phi_jacobian(self, p1, z1, p2, z2):
-        # Get pixels values 
-        u1 = p1[0, 0]
-        v1 = p1[1, 0]
-
-        # Get pixels values 
-        u2 = p2[0, 0]
-        v2 = p2[1, 0]
-
-        j11 = (z1 - z2)/((u1 - u2)**2 + (z1 - z2)**2)
-        j12 = 0.0
-        j13 = -(z1 - z2)/((u1 - u2)**2 + (z1 - z2)**2)
-        j14 = 0.0
-        j15 = -(u1 - u2)/((u1 - u2)**2 + (z1 - z2)**2)
-        j16 = (u1 - u2)/((u1 - u2)**2 + (z1 - z2)**2)
 
         ## [(z1 - z2)/((u1 - u2)^2 + (z1 - z2)^2), 0, -(z1 - z2)/((u1 - u2)^2 + (z1 - z2)^2), 0, -(u1 - u2)/((u1 - u2)^2 + (z1 - z2)^2), (u1 - u2)/((u1 - u2)^2 + (z1 - z2)^2)]
-        J = np.array([[j11, j12, j13, j14, j15, j16]])
+        J = np.array([[0.0, -1.0, 1.0, 0.0, 0.0, 0.0]])
         return J
+    
 
     def r_jacobian(self, p1, p2):
         # Get pixels values 
@@ -151,6 +158,7 @@ class ZeroCmdFromFeatures:
 
         # Inclination angles
         phi = np.arctan2(dz, du_aux)
+        phi = dz
 
         # Distance to the center 
         um = (u1_c + u2_c)/2
@@ -178,15 +186,26 @@ class ZeroCmdFromFeatures:
 
         error = desired - features  # 1×1
         ### Gain matrix
-        K = 1*np.diag([1.0, 0.0])  # 1×1
+        #K = 1*np.diag([1.0, 1.0])  # 1×1
+        K = 1*np.diag([10000.0, 10000000.0])  # 1×1
+
 
         ### Control law
         I = np.eye(6, 6)
         J_inv = np.linalg.pinv(J)
         K2 = 100*np.diag([1.0, 1.0, 0.0, 0.0, 0.0, 1.0])  # 6×6
         null_space = np.array([[0.0], [0.0], [0.0], [0.0], [0.0], [0.0]])
-        u = J_inv @ (K @ error)  + (I - J_inv@J)@K2@null_space
+        u = J_inv @ (K @ error)  #+ (I - J_inv@J)@K2@null_space
+        print(J_inv)
+        print("error: ",error)
         print(u)
+        print("features: ", features)
+        print("########## Punto 1: ############")
+        print(p1)
+        print(z1)
+        print("########## Punto 2: ############")
+        print(p2)
+        print(z2)
         return u
         
         
@@ -226,16 +245,18 @@ class ZeroCmdFromFeatures:
 
         # Create a Twist with all zeros
         zero_twist = Twist()
-        zero_twist.linear.x = u[3, 0]
-        zero_twist.linear.y = u[4, 0]
-        zero_twist.linear.z = u[5, 0]
+        zero_twist.linear.x = 0*u[3, 0]
+        zero_twist.linear.y = 0*u[4, 0]
+        zero_twist.linear.z = 0*u[5, 0]
 
-        zero_twist.angular.x = 0.0
-        zero_twist.angular.y = 0.0
+        zero_twist.angular.x = u[0,0]
+        zero_twist.angular.y = u[1,0]
         zero_twist.angular.z = u[2, 0]
+        
+        print(zero_twist)
 
         # Publish zero command
-        #self.cmd_pub.publish(zero_twist)
+        self.cmd_pub.publish(zero_twist)
         rospy.loginfo("Published cmd_vel")
 
 if __name__ == '__main__':
