@@ -92,6 +92,24 @@ class ZeroCmdFromFeatures:
         J = np.array([[j11, j12, j13, j14]])
         return J
 
+    def phi_jacobian(self, p1, z1, p2, z2):
+        # Get pixels values 
+        u1 = p1[0, 0]
+        v1 = p1[1, 0]
+
+        # Get pixels values 
+        u2 = p2[0, 0]
+        v2 = p2[1, 0]
+
+        h = self.h
+        w = self.w
+
+        j11 = (z1 - z2)/((u1 - u2)**2 + (z1 - z2)**2)
+        j12 = 0.0
+        j13 = -(z1 - z2)/((u1 - u2)**2 + (z1 - z2)**2)
+        j14 = 0.0
+        J = np.array([[j11, j12, j13, j14]])
+        return J
 
     def r_theta_control(self, p1, z1, p2, z2):
         # Get pixels values 
@@ -113,10 +131,16 @@ class ZeroCmdFromFeatures:
         # Compute theta
         du = u2_c - u1_c
         dv = v2_c - v1_c
+        dz = (z2 - z1)
+        #du_aux = 0.0001*(u2_c - u1_c)
+        du_aux = (u2_c - u1_c)
 
         # Angle of the feature
         theta = np.arctan2(dv, du)
         theta = theta
+
+        # Inclination angles
+        phi = np.arctan2(dz, du_aux)
 
         # Distance to the center 
         um = (u1_c + u2_c)/2
@@ -127,7 +151,8 @@ class ZeroCmdFromFeatures:
         # Jacobian Control
         jacobian_theta = self.theta_jacobian(p1, p2)
         jacobian_r = self.r_jacobian(p1, p2)
-        J_features = np.vstack((jacobian_theta, jacobian_r))  # 6×6
+        jacobian_phi = self.phi_jacobian(p1, z1,  p2, z2)
+        J_features = np.vstack((jacobian_theta, jacobian_phi))  # 6×6
 
         # Compute Jacobians
         J_p1 = self.jacobian(p1, z1)  # expect 2×6
@@ -135,15 +160,15 @@ class ZeroCmdFromFeatures:
 
         J_image = np.vstack((J_p1, J_p2))  # 6×6
 
-        J = jacobian_theta@J_image
+        J = J_features@J_image
 
         # Desired features (centered)
-        desired = np.array([0.0]).reshape(1,1)
-        features = np.array([theta]).reshape(1,1)              
+        desired = np.array([0.0, 0.0]).reshape(2,1)
+        features = np.array([theta, phi]).reshape(2,1)              
 
         error = desired - features  # 1×1
         ## Gain matrix
-        K = 50*np.diag([1.0])  # 1×1
+        K = 1*np.diag([10.0, 0.0])  # 1×1
 
         ## Control law
         I = np.eye(6, 6)
@@ -152,7 +177,9 @@ class ZeroCmdFromFeatures:
         null_space = np.array([[0.0], [0.0], [0.0], [0.0], [0.0], [0.0]])
         u = J_inv @ (K @ error)  + (I - J_inv@J)@K2@null_space
 
-        #print(theta)
+        print(phi)
+        print(z1)
+        print(du_aux)
         #print(r)
         #print(u)
         return u
@@ -162,12 +189,14 @@ class ZeroCmdFromFeatures:
         # Extract Point from the data p1 is the point that is in the too the way right
         p1 = np.array([msg.data[4], msg.data[5]]).reshape(2,1)
         z1 = msg.data[8]
+        z1 = 10000*z1
 
         # Extract Point from the data p1 is the point that is in the too the way left
         p2 = np.array([msg.data[6], msg.data[7]]).reshape(2,1)
         z2 = msg.data[9]
+        z2 = 10000*z2
 
-        u = self.r_theta_control(p2, z1, p1, z1)
+        u = self.r_theta_control(p2, z2, p1, z1)
         # Compute Jacobians
         J_p1 = self.jacobian(p1, z1)  # expect 2×6
         J_p2 = self.jacobian(p2, z2)
