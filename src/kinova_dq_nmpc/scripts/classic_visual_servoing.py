@@ -105,7 +105,7 @@ class ZeroCmdFromFeatures:
     def phi_jacobian(self, p1, z1, p2, z2):
 
         ## [(z1 - z2)/((u1 - u2)^2 + (z1 - z2)^2), 0, -(z1 - z2)/((u1 - u2)^2 + (z1 - z2)^2), 0, -(u1 - u2)/((u1 - u2)^2 + (z1 - z2)^2), (u1 - u2)/((u1 - u2)^2 + (z1 - z2)^2)]
-        J = np.array([[0.0, -1.0, 1.0, 0.0, 0.0, 0.0]])
+        J = np.array([[0.0, -1.0, 1.0,  0.0, 0.0, 0.0]])
         return J
     
 
@@ -187,7 +187,7 @@ class ZeroCmdFromFeatures:
         error = desired - features  # 1×1
         ### Gain matrix
         #K = 1*np.diag([1.0, 1.0])  # 1×1
-        K = 1*np.diag([10000.0, 10000000.0])  # 1×1
+        K = 1*np.diag([1000.0, 1000.0])  # 1×1
 
 
         ### Control law
@@ -196,9 +196,7 @@ class ZeroCmdFromFeatures:
         K2 = 100*np.diag([1.0, 1.0, 0.0, 0.0, 0.0, 1.0])  # 6×6
         null_space = np.array([[0.0], [0.0], [0.0], [0.0], [0.0], [0.0]])
         u = J_inv @ (K @ error)  #+ (I - J_inv@J)@K2@null_space
-        print(J_inv)
         print("error: ",error)
-        print(u)
         print("features: ", features)
         print("########## Punto 1: ############")
         print(p1)
@@ -250,7 +248,7 @@ class ZeroCmdFromFeatures:
         zero_twist.linear.z = 0*u[5, 0]
 
         zero_twist.angular.x = u[0,0]
-        zero_twist.angular.y = u[1,0]
+        zero_twist.angular.y = -u[1,0]
         zero_twist.angular.z = u[2, 0]
         
         print(zero_twist)
