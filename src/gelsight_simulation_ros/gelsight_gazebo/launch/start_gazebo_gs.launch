@@ -7,7 +7,7 @@
   <arg name="gs_sim" default="true" />
   <arg name="start_rviz" default="true" />
   <arg name="joystick_control_val" default="false" />
-  <arg name="keyboard_control_val" default="false" />
+  <arg name="keyboard_control_val" default="true" />
   
   <!-- Pose of object -->
   <arg name="object_name" default="aluminum_profile"/>
