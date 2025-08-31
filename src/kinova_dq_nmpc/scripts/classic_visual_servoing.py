@@ -225,7 +225,7 @@ class ZeroCmdFromFeatures:
         #desired_features = np.vstack((desired, desired))
 
         ## Desired Features
-        desired = np.array([0.1]).reshape(1,1)
+        desired = np.array([0.0]).reshape(1,1)
         featuresnormalized = np.array([theta]).reshape(1,1)
         error_theta = desired - featuresnormalized  # 1×1
         #### Gain matrix
@@ -241,12 +241,16 @@ class ZeroCmdFromFeatures:
 
 
         # Control Classic features
-        desired = np.array([0.0, 30.0]).reshape(2,1)
+        desired = np.array([0.0, -0.0]).reshape(2,1)
         featuresnormalized = np.vstack((u1_c, v1_c))              
         error_p1 = desired - featuresnormalized  # 1×1
         I = np.eye(4, 4)
-        K = 0.5*np.diag([0.0, 1.0])  # 1×1
-        K2 = 100*np.diag([0.0, 0.0, 1.0, 1.0])  # 6×6
+        K = 0.1*np.diag([0.0, 1.0])  # 1×1
+        K2 = 100*np.diag([0.01, 0.0, 1.0, 1.0])  # 6×6
+
+        # Vector for velocity regularization
+        xi = np.array([error_theta[0, 0], error_p1[1, 0]/self.v_max]) 
+        velocity_x = (0.05)/(1 + 4*np.linalg.norm(xi))
         null_space = np.array([[0.0], [0.0], [0.0], [0.0]])
 
         ## Control law
