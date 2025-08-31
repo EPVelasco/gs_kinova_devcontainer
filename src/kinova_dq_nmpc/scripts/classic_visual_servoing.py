@@ -65,6 +65,39 @@ class ZeroCmdFromFeatures:
 
         return J
 
+    def jacobian_decopled(self, p, z):
+        # Get pixels values 
+        u = p[0, 0]
+        v = p[1, 0]
+
+        # Get pixels respect to the center of the image
+        u_c = u - self.u_max
+        v_c = v - self.v_max
+
+        ## Compute point in the camera frame at the moment of contact
+        x = u_c*z/self.f
+        y = v_c*z/self.f
+  
+
+        j11 = -(self.f/z)
+        j12 = 0.0
+        j13 = (u_c/z)
+        j14 = (u_c * v_c)/self.f
+        j15 = -(self.f**2 + u_c**2)/self.f
+        j16 = v_c
+
+        j21 = 0.0
+        j22 = -(self.f/z)
+        j23 = (v_c/z)
+        j24 = (self.f**2 + v_c**2)/self.f
+        j25 = -(u_c * v_c)/self.f
+        j26 = -u_c
+
+        J = np.array([[j11, j12, j13, j14, j15, j16], [j21, j22, j23, j24, j25, j26]])
+        J_xy = np.array([[j11, j12, j14, j15], [j21, j22, j24, j25]])
+        J_z = np.array([[j13, j16], [j23, j26]])
+        return J_xy, J_z
+
     def theta_jacobian(self, p1, p2):
         # Get pixels values 
         u1 = p1[0, 0]
@@ -161,50 +194,64 @@ class ZeroCmdFromFeatures:
         # Jacobian Control
         jacobian_theta = self.theta_jacobian(p1, p2)
         jacobian_phi = self.phi_jacobian(p1, z1,  p2, z2)
+
         #J_features = np.vstack((jacobian_theta, jacobian_phi))  # 6×6
 
         # Compute Jacobians
-        J_p1 = self.jacobian(p1, z1)  # expect 2×6
-        J_p2 = self.jacobian(p2, z2)
+        J_xy_p1, J_z_p1 = self.jacobian_decopled(p1, z1)
+        J_xy_p2, J_z_p2 = self.jacobian_decopled(p2, z2)
 
+
+        J_image_xy = np.vstack((J_xy_p1, J_xy_p2)) 
+        J_image_z = np.vstack((J_z_p1, J_z_p2)) 
+
+        J_image_xy_theta = jacobian_theta@ J_image_xy
+        J_image_xy_z = jacobian_theta@ J_image_z
+
+        
         #J_image = np.vstack((J_p1, J_p2))  # 4×6
-        J_image = np.vstack((J_p1, J_p2))  # 4×6
-        #J_image_theta = jacobian_theta@J_image
+        ##J_image_theta = jacobian_theta@J_image
 
-        # Full Jacobian
-        J = J_image
+        ## Full Jacobian
+        J = J_image_xy_z
 
-        ## Desired features (centered)
+        ### Desired features (centered)
         #desired = np.array([0.0, 0.0]).reshape(2,1)
-        #features = np.array([theta, phi]).reshape(2,1)              
+        ##features = np.array([theta, phi]).reshape(2,1)              
 
-        # Desired Features pixels
-        desired = np.array([0.0, 0.0, 0.195]).reshape(3,1)
-        featuresnormalized = np.vstack((u1_c, v1_c, z1, u2_c, v2_c, z2))              
-        desired_features = np.vstack((desired, desired))
+        ## Desired Features pixels
+        #desired = np.array([0.0, 0.0, 0.195]).reshape(3,1)
+        #featuresnormalized = np.vstack((u1_c, v1_c, z1, u2_c, v2_c, z2))              
+        #desired_features = np.vstack((desired, desired))
 
-        error = desired_features - featuresnormalized  # 1×1
-        ### Gain matrix
-        #K = 0.1*np.diag([1.0, 1.0])  # 1×1
-        K = 0.2*np.diag([0.0, 1.0, 10.0, 0.0, 1.0, 10.0])  # 6×6
+        ## Desired Features
+        desired = np.array([0.1]).reshape(1,1)
+        featuresnormalized = np.array([theta]).reshape(1,1)
+        error_theta = desired - featuresnormalized  # 1×1
+        #### Gain matrix
+        K = 0.5*np.diag([1.0])  # 1×1
 
-        ### Control law
-        I = np.eye(6, 6)
+        #### Control law
+        I = np.eye(2, 2)
         J_inv = np.linalg.pinv(J)
-        K2 = 100*np.diag([0.0, 0.0, 1.0, 1.0, 1.0, 0.0])  # 6×6
-        null_space = np.array([[0.0], [0.0], [0.0], [0.0], [0.0], [0.0]])
-        u = J_inv @ (K @ error)  + (I - J_inv@J)@K2@null_space
-        #u = J_inv @ (K @ error)
-        print(featuresnormalized)
-        print(z1, z2)
+        K2 = 100*np.diag([1.0, 1.0])  # 6×6
+        null_space = np.array([[0.0], [0.0]])
+        twist_z = J_inv @ (K @ error_theta)  + (I - J_inv@J)@K2@null_space
+
+
+
+        # Control Classic features
+        desired = np.array([0.0, 30.0]).reshape(2,1)
+        featuresnormalized = np.vstack((u1_c, v1_c))              
+        error_p1 = desired - featuresnormalized  # 1×1
+        I = np.eye(4, 4)
+        K = 0.5*np.diag([0.0, 1.0])  # 1×1
+        K2 = 100*np.diag([0.0, 0.0, 1.0, 1.0])  # 6×6
+        null_space = np.array([[0.0], [0.0], [0.0], [0.0]])
 
         ## Control law
-        #I = np.eye(6, 6)
-        #J_inv = np.linalg.pinv(J)
-        #K2 = 10*np.diag([1.0, 1.0, 0.0, 0.0, 0.0, 10.0])  # 6×6
-        #null_space = np.array([[0.0], [0.0], [0.0], [0.0], [0.0], [0.0]])
-        ##u = J_inv @ (K @ error)  + (I - J_inv@J)@K2@null_space
-        return u
+        u = np.linalg.pinv(J_xy_p1) @ (K @ error_p1 - J_z_p1@twist_z)+ (I - np.linalg.pinv(J_xy_p1)@J_xy_p1)@K2@null_space
+        return u, twist_z
         
         
     def features_callback(self, msg):
@@ -218,38 +265,17 @@ class ZeroCmdFromFeatures:
         z2 = msg.data[9]
         z2 = 10*z2
 
-        u = self.r_theta_control(p2, z2, p1, z1)
-        # Compute Jacobians
-        #J_p1 = self.jacobian(p1, z1)  # expect 2×6
-        #J_p2 = self.jacobian(p2, z2)
-
-        #J = np.vstack((J_p1, J_p2))  # 6×6
-
-        ## Desired features (centered)
-        #desired = np.array([self.u_max, self.v_max]).reshape(2,1)
-        #features = np.vstack((p1, p2))              
-        #desired_features = np.vstack((desired, desired))
-
-        #error = desired_features - features  # 6×1
-        ## Gain matrix
-        #K = 0.005*np.diag([0.0, 1.0, 0.0, 1.0])  # 6×6
-
-        ## Control law
-        #I = np.eye(6, 6)
-        #J_inv = np.linalg.pinv(J)
-        #K2 = 10*np.diag([1.0, 1.0, 0.0, 0.0, 0.0, 10.0])  # 6×6
-        #null_space = np.array([[0.0], [0.0], [0.0], [0.0], [0.0], [0.0]])
-        ##u = J_inv @ (K @ error)  + (I - J_inv@J)@K2@null_space
+        u, twist_z = self.r_theta_control(p2, z2, p1, z1)
 
         # Create a Twist with all zeros
         zero_twist = Twist()
         zero_twist.linear.x = u[0, 0]
         zero_twist.linear.y = u[1, 0]
-        zero_twist.linear.z = u[2, 0]
+        zero_twist.linear.z = twist_z[0, 0]
 
-        zero_twist.angular.x = u[3, 0]
-        zero_twist.angular.y = u[4, 0]
-        zero_twist.angular.z = u[5, 0]
+        zero_twist.angular.x = u[2, 0]
+        zero_twist.angular.y = u[3, 0]
+        zero_twist.angular.z = twist_z[1, 0]
 
         # Publish zero command
         self.cmd_pub.publish(zero_twist)
