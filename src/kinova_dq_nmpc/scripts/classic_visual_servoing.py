@@ -191,7 +191,7 @@ class ZeroCmdFromFeatures:
         ### Control law
         I = np.eye(6, 6)
         J_inv = np.linalg.pinv(J)
-        K2 = 100*np.diag([0.0, 0.0, 10.0, 10.0, 10.0, 0.0])  # 6×6
+        K2 = 100*np.diag([0.0, 0.0, 1.0, 1.0, 1.0, 0.0])  # 6×6
         null_space = np.array([[0.0], [0.0], [0.0], [0.0], [0.0], [0.0]])
         u = J_inv @ (K @ error)  + (I - J_inv@J)@K2@null_space
         #u = J_inv @ (K @ error)
