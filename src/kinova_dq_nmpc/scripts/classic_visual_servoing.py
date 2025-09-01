@@ -15,7 +15,7 @@ class ZeroCmdFromFeatures:
         rospy.loginfo("Visual Servoing Controller")
 
         # Define focal distance 
-        self.f = 1
+        self.f = 100
 
         # Camera u_max and v _max
         self.v_max = 240/2
@@ -105,11 +105,7 @@ class ZeroCmdFromFeatures:
     def phi_jacobian(self, p1, z1, p2, z2):
 
         ## [(z1 - z2)/((u1 - u2)^2 + (z1 - z2)^2), 0, -(z1 - z2)/((u1 - u2)^2 + (z1 - z2)^2), 0, -(u1 - u2)/((u1 - u2)^2 + (z1 - z2)^2), (u1 - u2)/((u1 - u2)^2 + (z1 - z2)^2)]
-       
-        #k_phi = 1.0
-        #j_phi = k_phi * (((z1/k_phi) - (z2/k_phi))**2+1.0)
-        J = np.array([[0.0, -1.0, 1.0, 0.0, 0.0, 0.0]])
-        
+        J = np.array([[0.0, -1.0, 1.0,  0.0, 0.0, 0.0]])
         return J
     
 
@@ -161,8 +157,8 @@ class ZeroCmdFromFeatures:
         theta = theta
 
         # Inclination angles
-        #phi = np.arctan2(dz, 100.0)
-        phi = 100.0*dz
+        phi = np.arctan2(dz, du_aux)
+        phi = dz
 
         # Distance to the center 
         um = (u1_c + u2_c)/2
@@ -191,7 +187,7 @@ class ZeroCmdFromFeatures:
         error = desired - features  # 1×1
         ### Gain matrix
         #K = 1*np.diag([1.0, 1.0])  # 1×1
-        K = 1*np.diag([10.0, 10.0])  # 1×1
+        K = 1*np.diag([1000.0, 1000.0])  # 1×1
 
 
         ### Control law
@@ -201,15 +197,13 @@ class ZeroCmdFromFeatures:
         null_space = np.array([[0.0], [0.0], [0.0], [0.0], [0.0], [0.0]])
         u = J_inv @ (K @ error)  #+ (I - J_inv@J)@K2@null_space
         print("error: ",error)
-        print("theta: ",theta)
-        print("phi: ",phi)
-        
-        # print("########## Punto 1: ############")
-        # print(p1)
-        # print(z1)
-        # print("########## Punto 2: ############")
-        # print(p2)
-        # print(z2)
+        print("features: ", features)
+        print("########## Punto 1: ############")
+        print(p1)
+        print(z1)
+        print("########## Punto 2: ############")
+        print(p2)
+        print(z2)
         return u
         
         
@@ -254,7 +248,7 @@ class ZeroCmdFromFeatures:
         zero_twist.linear.z = 0*u[5, 0]
 
         zero_twist.angular.x = u[0,0]
-        zero_twist.angular.y = u[1,0]
+        zero_twist.angular.y = -u[1,0]
         zero_twist.angular.z = u[2, 0]
         
         print(zero_twist)
