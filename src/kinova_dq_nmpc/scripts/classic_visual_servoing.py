@@ -109,6 +109,7 @@ class ZeroCmdFromFeatures:
         # Get pixels values 
         u1 = p1[0, 0]
         v1 = p1[1, 0]
+<<<<<<< HEAD
 
         # Get pixels values 
         u2 = p2[0, 0]
@@ -120,6 +121,21 @@ class ZeroCmdFromFeatures:
         j14 = 0.0
         j15 = -(u1 - u2)/((u1 - u2)**2 + (z1 - z2)**2)
         j16 = (u1 - u2)/((u1 - u2)**2 + (z1 - z2)**2)
+=======
+
+        # Get pixels values 
+        u2 = p2[0, 0]
+        v2 = p2[1, 0]
+
+        j11 = (z1 - z2)/((u1 - u2)**2 + (z1 - z2)**2)
+        j12 = 0.0
+        j13 = -(z1 - z2)/((u1 - u2)**2 + (z1 - z2)**2)
+        j14 = 0.0
+        j15 = -(u1 - u2)/((u1 - u2)**2 + (z1 - z2)**2)
+        j16 = (u1 - u2)/((u1 - u2)**2 + (z1 - z2)**2)
+
+        ## [(z1 - z2)/((u1 - u2)^2 + (z1 - z2)^2), 0, -(z1 - z2)/((u1 - u2)^2 + (z1 - z2)^2), 0, -(u1 - u2)/((u1 - u2)^2 + (z1 - z2)^2), (u1 - u2)/((u1 - u2)^2 + (z1 - z2)^2)]
+>>>>>>> 6b135e6d4c7838cbffd8a0d3298953455fee340a
         J = np.array([[j11, j12, j13, j14, j15, j16]])
         return J
 
@@ -164,6 +180,23 @@ class ZeroCmdFromFeatures:
 
         # Angle of the feature
         theta = np.arctan2(dv, du)
+<<<<<<< HEAD
+=======
+        theta = theta
+
+        # Inclination angles
+        phi = np.arctan2(dz, du_aux)
+
+        # Distance to the center 
+        um = (u1_c + u2_c)/2
+        vm = (v1_c + v2_c)/2
+        r = um*np.sin(theta) + vm*np.cos(theta)
+
+
+        # Jacobian Control
+        jacobian_theta = self.theta_jacobian(p1, p2)
+        jacobian_phi = self.phi_jacobian(p1, z1,  p2, z2)
+>>>>>>> 6b135e6d4c7838cbffd8a0d3298953455fee340a
 
         # Compute Jacobians decoupled
         J_xy_p1, J_z_p1 = self.jacobian_decopled(p1, z1)
@@ -172,16 +205,39 @@ class ZeroCmdFromFeatures:
         # Coupled jacobians of the decopled ones
         J_image_z = np.vstack((J_z_p1, J_z_p2)) 
 
+<<<<<<< HEAD
         # Jacobian theta
         jacobian_theta = self.theta_jacobian(p1, p2)
 
         J_image_xy_z = jacobian_theta@ J_image_z
+=======
+        J_image_xy_theta = jacobian_theta@ J_image_xy
+        J_image_xy_z = jacobian_theta@ J_image_z
+
+        
+        #J_image = np.vstack((J_p1, J_p2))  # 4×6
+        ##J_image_theta = jacobian_theta@J_image
+>>>>>>> 6b135e6d4c7838cbffd8a0d3298953455fee340a
 
         # Full Jacobian
         J = J_image_xy_z
 
+<<<<<<< HEAD
         # Desired Features
         desired = np.array([desired_theta]).reshape(1,1)
+=======
+        ### Desired features (centered)
+        #desired = np.array([0.0, 0.0]).reshape(2,1)
+        ##features = np.array([theta, phi]).reshape(2,1)              
+
+        ## Desired Features pixels
+        #desired = np.array([0.0, 0.0, 0.195]).reshape(3,1)
+        #featuresnormalized = np.vstack((u1_c, v1_c, z1, u2_c, v2_c, z2))              
+        #desired_features = np.vstack((desired, desired))
+
+        ## Desired Features
+        desired = np.array([0.0]).reshape(1,1)
+>>>>>>> 6b135e6d4c7838cbffd8a0d3298953455fee340a
         featuresnormalized = np.array([theta]).reshape(1,1)
         error_theta = desired - featuresnormalized  # 1×1
 
@@ -191,10 +247,15 @@ class ZeroCmdFromFeatures:
         #### Control law
         I = np.eye(2, 2)
         J_inv = np.linalg.pinv(J)
+<<<<<<< HEAD
         K2 = 1*np.diag([1.0, 1.0])  # 6×6
 
         # Be careful the way we define the error of position for z this si the inverse behavior of a z in the camera
         null_space = np.array([[z1 - desired_z], [0.0]])
+=======
+        K2 = 100*np.diag([1.0, 1.0])  # 6×6
+        null_space = np.array([[0.0], [0.0]])
+>>>>>>> 6b135e6d4c7838cbffd8a0d3298953455fee340a
         twist_z = J_inv @ (K @ error_theta)  + (I - J_inv@J)@K2@null_space
         return twist_z, error_theta
         
