@@ -15,7 +15,7 @@ class ZeroCmdFromFeatures:
         rospy.loginfo("Visual Servoing Controller")
 
         # Define focal distance 
-        self.f = 1
+        self.f = 100
 
         # Camera u_max and v _max
         self.v_max = 240/2
@@ -105,36 +105,7 @@ class ZeroCmdFromFeatures:
         J = np.array([[j11, j12, j13, j14]])
         return J
 
-    # def phi_jacobian(self, p1, z1, p2, z2):
-    #     # Get pixels values 
-    #     u1 = p1[0, 0]
-    #     v1 = p1[1, 0]
-
-    #     # Get pixels values 
-    #     u2 = p2[0, 0]
-    #     v2 = p2[1, 0]
-
-    #     j11 = (z1 - z2)/((u1 - u2)**2 + (z1 - z2)**2)
-    #     j12 = 0.0
-    #     j13 = -(z1 - z2)/((u1 - u2)**2 + (z1 - z2)**2)
-    #     j14 = 0.0
-    #     j15 = -(u1 - u2)/((u1 - u2)**2 + (z1 - z2)**2)
-    #     j16 = (u1 - u2)/((u1 - u2)**2 + (z1 - z2)**2)
-
-    #     ## [(z1 - z2)/((u1 - u2)^2 + (z1 - z2)^2), 0, -(z1 - z2)/((u1 - u2)^2 + (z1 - z2)^2), 0, -(u1 - u2)/((u1 - u2)^2 + (z1 - z2)^2), (u1 - u2)/((u1 - u2)^2 + (z1 - z2)^2)]
-    #     J = np.array([[j11, j12, j13, j14, j15, j16]])
-    #     return J
-    
     def phi_jacobian(self, p1, z1, p2, z2):
-<<<<<<< HEAD
-
-        ## [(z1 - z2)/((u1 - u2)^2 + (z1 - z2)^2), 0, -(z1 - z2)/((u1 - u2)^2 + (z1 - z2)^2), 0, -(u1 - u2)/((u1 - u2)^2 + (z1 - z2)^2), (u1 - u2)/((u1 - u2)^2 + (z1 - z2)^2)]
-       
-        #k_phi = 1.0
-        #j_phi = k_phi * (((z1/k_phi) - (z2/k_phi))**2+1.0)
-        J = np.array([[0.0, -1.0, 1.0, 0.0, 0.0, 0.0]])
-        
-=======
         # Get pixels values 
         u1 = p1[0, 0]
         v1 = p1[1, 0]
@@ -150,9 +121,7 @@ class ZeroCmdFromFeatures:
         j15 = -(u1 - u2)/((u1 - u2)**2 + (z1 - z2)**2)
         j16 = (u1 - u2)/((u1 - u2)**2 + (z1 - z2)**2)
         J = np.array([[j11, j12, j13, j14, j15, j16]])
->>>>>>> origin/visual_servoing
         return J
-    
 
     def r_jacobian(self, p1, p2):
         # Get pixels values 
@@ -253,15 +222,7 @@ class ZeroCmdFromFeatures:
 
         # Angle of the feature
         theta = np.arctan2(dv, du)
-<<<<<<< HEAD
-        theta = theta
-
-        # Inclination angles
-        #phi = np.arctan2(dz, 100.0)
-        phi = 100.0*dz
-=======
         phi = np.arctan2(dz, du)
->>>>>>> origin/visual_servoing
 
         # Distance to the center 
         um = (u1_c + u2_c)/2
@@ -285,31 +246,6 @@ class ZeroCmdFromFeatures:
         # You can modify the desired theta and z (Be careful with the gain)
         twist_z, error_theta = self.control_theta_z(p1=p1, z1=z1, p2=p2, z2=z2, gain=gain_theta, desired_theta=desired_theta, desired_z=desired_z)
 
-<<<<<<< HEAD
-        error = desired - features  # 1×1
-        ### Gain matrix
-        #K = 1*np.diag([1.0, 1.0])  # 1×1
-        K = 1*np.diag([10.0, 10.0])  # 1×1
-
-
-        ### Control law
-        I = np.eye(6, 6)
-        J_inv = np.linalg.pinv(J)
-        K2 = 100*np.diag([1.0, 1.0, 0.0, 0.0, 0.0, 1.0])  # 6×6
-        null_space = np.array([[0.0], [0.0], [0.0], [0.0], [0.0], [0.0]])
-        u = J_inv @ (K @ error)  #+ (I - J_inv@J)@K2@null_space
-        print("error: ",error)
-        print("theta: ",theta)
-        print("phi: ",phi)
-        
-        # print("########## Punto 1: ############")
-        # print(p1)
-        # print(z1)
-        # print("########## Punto 2: ############")
-        # print(p2)
-        # print(z2)
-        return u
-=======
         # Desired Features
         desired = np.array([desired_r]).reshape(1,1)
         featuresnormalized = np.array([r]).reshape(1,1)
@@ -333,7 +269,6 @@ class ZeroCmdFromFeatures:
         ## Control law
         u = np.linalg.pinv(J_r_decoupled_xy) @ (K @ error_r - J_r_decoupled_z@twist_z)+ (I - np.linalg.pinv(J_r_decoupled_xy)@J_r_decoupled_xy)@K2@null_space
         return u, twist_z
->>>>>>> origin/visual_servoing
         
         
     def features_callback(self, msg):
@@ -352,17 +287,6 @@ class ZeroCmdFromFeatures:
 
         # Create a Twist with all zeros
         zero_twist = Twist()
-<<<<<<< HEAD
-        zero_twist.linear.x = 0*u[3, 0]
-        zero_twist.linear.y = 0*u[4, 0]
-        zero_twist.linear.z = 0*u[5, 0]
-
-        zero_twist.angular.x = u[0,0]
-        zero_twist.angular.y = u[1,0]
-        zero_twist.angular.z = u[2, 0]
-        
-        print(zero_twist)
-=======
         zero_twist.linear.x = u[0, 0]
         zero_twist.linear.y = u[1, 0]
         zero_twist.linear.z = twist_z[0, 0]
@@ -370,7 +294,6 @@ class ZeroCmdFromFeatures:
         zero_twist.angular.x = u[2, 0]
         zero_twist.angular.y = u[3, 0]
         zero_twist.angular.z = twist_z[1, 0]
->>>>>>> origin/visual_servoing
 
         # Publish zero command
         self.cmd_pub.publish(zero_twist)
