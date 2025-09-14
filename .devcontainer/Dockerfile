@@ -111,15 +111,14 @@ RUN git clone --depth 1 https://github.com/lfrecalde1/nvim_setup /tmp/nvim_setup
 RUN mkdir -p "$HOME/.local/bin" && \
     ln -sf "$(command -v fdfind)" "$HOME/.local/bin/fd" || true
 
+#git checkout 37e17d31890ab54e5a855f1fe787fbf2f5d43bdb && \
 # --- Build Acados ---
 RUN git clone https://github.com/acados/acados.git && \
     cd acados && \
-    git checkout 37e17d31890ab54e5a855f1fe787fbf2f5d43bdb && \
-    git submodule update --init --recursive && \
+    git submodule update --recursive --init && \
     mkdir -p build && cd build && \
-    cmake -DACADOS_WITH_QPOASES=ON -DACADOS_INSTALL_DIR="${HOME}/acados" .. && \
+    cmake -DACADOS_WITH_DAQP=ON -DACADOS_INSTALL_DIR="${HOME}/acados" .. && \
     make install -j"$(nproc)" && \
-    cd "${HOME}/acados" && make shared_library && make examples_c && \
     pip install --no-cache-dir -e "${HOME}/acados/interfaces/acados_template"
 
 # --- Python tools ---

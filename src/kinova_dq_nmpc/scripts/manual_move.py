@@ -47,12 +47,12 @@ if __name__ == "__main__":
                 twist.linear.y = 0.0
             elif key == 'a':
                 twist.linear.x = 0.0
-                twist.angular.z = 0.05
-                #twist.linear.y = 0.02
+                #twist.angular.z = 0.05
+                twist.linear.y = 0.01
             elif key == 'd':
                 twist.linear.x = 0.0
-                twist.angular.z = -0.05
-                #twist.linear.y = -0.02
+                #twist.angular.z = -0.05
+                twist.linear.y = -0.01
             elif key == 'x':  # stop
                 twist = Twist()
             elif key == 'q':  # quit

@@ -9,6 +9,5 @@ rostopic echo /my_gen3/joint_states
 ```
 ### TODO
 ## Map between visual servoing and dq controller
-## Clean Dq libraries code (We do not need something fancy since this is just pure kinematic chain)
 ## Try to minimze the accions of the last joints. Looks weird this behavior
 

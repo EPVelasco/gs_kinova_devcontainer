@@ -5,3 +5,4 @@ log/
 *.pyc
 __pycache__/
 ./devcontainer
+src/dual_quaternion

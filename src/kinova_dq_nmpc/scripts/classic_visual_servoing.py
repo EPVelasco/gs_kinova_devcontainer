@@ -21,8 +21,8 @@ class ZeroCmdFromFeatures:
         self.v_max = 240/2
         self.u_max = 320/2
 
-        self.h = 240/2
-        self.w = 320/2
+        self.h = 240
+        self.w = 320
 
     def jacobian(self, p, z):
         # Get pixels values 
@@ -36,7 +36,6 @@ class ZeroCmdFromFeatures:
         ## Compute point in the camera frame at the moment of contact
         x = u_c*z/self.f
         y = v_c*z/self.f
-  
 
         j11 = -(self.f/z)
         j12 = 0.0
@@ -61,8 +60,6 @@ class ZeroCmdFromFeatures:
 
 
         J = np.array([[j11, j12, j13, j14, j15, j16], [j21, j22, j23, j24, j25, j26], [j31, j32, j33, j34, j35, j36]])
-        #J = np.array([[j11, j12, j13, j14, j15, j16], [j21, j22, j23, j24, j25, j26]])
-
         return J
 
     def jacobian_decopled(self, p, z):
@@ -73,11 +70,6 @@ class ZeroCmdFromFeatures:
         # Get pixels respect to the center of the image
         u_c = u - self.u_max
         v_c = v - self.v_max
-
-        ## Compute point in the camera frame at the moment of contact
-        x = u_c*z/self.f
-        y = v_c*z/self.f
-  
 
         j11 = -(self.f/z)
         j12 = 0.0
@@ -93,7 +85,6 @@ class ZeroCmdFromFeatures:
         j25 = -(u_c * v_c)/self.f
         j26 = -u_c
 
-        J = np.array([[j11, j12, j13, j14, j15, j16], [j21, j22, j23, j24, j25, j26]])
         J_xy = np.array([[j11, j12, j14, j15], [j21, j22, j24, j25]])
         J_z = np.array([[j13, j16], [j23, j26]])
         return J_xy, J_z
@@ -106,7 +97,6 @@ class ZeroCmdFromFeatures:
         # Get pixels values 
         u2 = p2[0, 0]
         v2 = p2[1, 0]
-        ## [-(v1 - v2)/((u1 - u2)^2 + (v1 - v2)^2), (u1 - u2)/((u1 - u2)^2 + (v1 - v2)^2), (v1 - v2)/((u1 - u2)^2 + (v1 - v2)^2), -(u1 - u2)/((u1 - u2)^2 + (v1 - v2)^2), 0, 0]
 
         j11 = -(v1 - v2)/((u1 - u2)**2 + (v1 - v2)**2)
         j12 = (u1 - u2)/((u1 - u2)**2 + (v1 - v2)**2)
@@ -130,8 +120,6 @@ class ZeroCmdFromFeatures:
         j14 = 0.0
         j15 = -(u1 - u2)/((u1 - u2)**2 + (z1 - z2)**2)
         j16 = (u1 - u2)/((u1 - u2)**2 + (z1 - z2)**2)
-
-        ## [(z1 - z2)/((u1 - u2)^2 + (z1 - z2)^2), 0, -(z1 - z2)/((u1 - u2)^2 + (z1 - z2)^2), 0, -(u1 - u2)/((u1 - u2)^2 + (z1 - z2)^2), (u1 - u2)/((u1 - u2)^2 + (z1 - z2)^2)]
         J = np.array([[j11, j12, j13, j14, j15, j16]])
         return J
 
@@ -153,8 +141,64 @@ class ZeroCmdFromFeatures:
         j14 = ((u1 - u2)*(h*v1 - h*v2 + 2*u1*u2 - u1*w + u2*w + 2*v1*v2 - 2*u2**2 - 2*v1**2))/(2*((u1 - u2)**2 + (v1 - v2)**2)**(3/2))
         J = np.array([[j11, j12, j13, j14]])
         return J
+    def control_theta_z(self, p1, z1, p2, z2, gain, desired_theta, desired_z):
+        # Get pixels values 
+        u1 = p1[0, 0]
+        v1 = p1[1, 0]
 
-    def r_theta_control(self, p1, z1, p2, z2):
+        # Get pixels respect to the center of the image
+        u1_c = u1 - self.u_max
+        v1_c = v1 - self.v_max
+
+        # Get pixels values 
+        u2 = p2[0, 0]
+        v2 = p2[1, 0]
+
+        # Get pixels respect to the center of the image
+        u2_c = u2 - self.u_max
+        v2_c = v2 - self.v_max
+
+        # Compute theta
+        du = u2_c - u1_c
+        dv = v2_c - v1_c
+
+        # Angle of the feature
+        theta = np.arctan2(dv, du)
+
+        # Compute Jacobians decoupled
+        J_xy_p1, J_z_p1 = self.jacobian_decopled(p1, z1)
+        J_xy_p2, J_z_p2 = self.jacobian_decopled(p2, z2)
+
+        # Coupled jacobians of the decopled ones
+        J_image_z = np.vstack((J_z_p1, J_z_p2)) 
+
+        # Jacobian theta
+        jacobian_theta = self.theta_jacobian(p1, p2)
+
+        J_image_xy_z = jacobian_theta@ J_image_z
+
+        # Full Jacobian
+        J = J_image_xy_z
+
+        # Desired Features
+        desired = np.array([desired_theta]).reshape(1,1)
+        featuresnormalized = np.array([theta]).reshape(1,1)
+        error_theta = desired - featuresnormalized  # 1×1
+
+        #### Gain matrix
+        K = gain*np.diag([1.0])  # 1×1
+
+        #### Control law
+        I = np.eye(2, 2)
+        J_inv = np.linalg.pinv(J)
+        K2 = 1*np.diag([1.0, 1.0])  # 6×6
+
+        # Be careful the way we define the error of position for z this si the inverse behavior of a z in the camera
+        null_space = np.array([[z1 - desired_z], [0.0]])
+        twist_z = J_inv @ (K @ error_theta)  + (I - J_inv@J)@K2@null_space
+        return twist_z, error_theta
+        
+    def r_theta_control(self, p1, z1, p2, z2, gain_r, desired_r, gain_theta, desired_theta, desired_z):
         # Get pixels values 
         u1 = p1[0, 0]
         v1 = p1[1, 0]
@@ -175,86 +219,55 @@ class ZeroCmdFromFeatures:
         du = u2_c - u1_c
         dv = v2_c - v1_c
         dz = (z2 - z1)
-        #du_aux = 0.0001*(u2_c - u1_c)
-        du_aux = (u2_c - u1_c)
 
         # Angle of the feature
         theta = np.arctan2(dv, du)
-        theta = theta
-
-        # Inclination angles
-        phi = np.arctan2(dz, du_aux)
+        phi = np.arctan2(dz, du)
 
         # Distance to the center 
         um = (u1_c + u2_c)/2
         vm = (v1_c + v2_c)/2
         r = um*np.sin(theta) + vm*np.cos(theta)
 
-
-        # Jacobian Control
-        jacobian_theta = self.theta_jacobian(p1, p2)
-        jacobian_phi = self.phi_jacobian(p1, z1,  p2, z2)
-
-        #J_features = np.vstack((jacobian_theta, jacobian_phi))  # 6×6
+        jacobian_r = self.r_jacobian(p1, p2)
 
         # Compute Jacobians
         J_xy_p1, J_z_p1 = self.jacobian_decopled(p1, z1)
         J_xy_p2, J_z_p2 = self.jacobian_decopled(p2, z2)
 
-
+        # Coupled jacobians of the decopled ones
         J_image_xy = np.vstack((J_xy_p1, J_xy_p2)) 
         J_image_z = np.vstack((J_z_p1, J_z_p2)) 
 
-        J_image_xy_theta = jacobian_theta@ J_image_xy
-        J_image_xy_z = jacobian_theta@ J_image_z
+        # Jacobian of the theta and z
+        J_r_decoupled_xy = jacobian_r@J_image_xy
+        J_r_decoupled_z = jacobian_r@J_image_z
 
-        
-        #J_image = np.vstack((J_p1, J_p2))  # 4×6
-        ##J_image_theta = jacobian_theta@J_image
+        # You can modify the desired theta and z (Be careful with the gain)
+        twist_z, error_theta = self.control_theta_z(p1=p1, z1=z1, p2=p2, z2=z2, gain=gain_theta, desired_theta=desired_theta, desired_z=desired_z)
 
-        ## Full Jacobian
-        J = J_image_xy_z
+        # Desired Features
+        desired = np.array([desired_r]).reshape(1,1)
+        featuresnormalized = np.array([r]).reshape(1,1)
+        error_r = desired - featuresnormalized  # 1×1
 
-        ### Desired features (centered)
-        #desired = np.array([0.0, 0.0]).reshape(2,1)
-        ##features = np.array([theta, phi]).reshape(2,1)              
+        # Gain matrix
+        K = gain_r*np.diag([1.0])  # 1×1
 
-        ## Desired Features pixels
-        #desired = np.array([0.0, 0.0, 0.195]).reshape(3,1)
-        #featuresnormalized = np.vstack((u1_c, v1_c, z1, u2_c, v2_c, z2))              
-        #desired_features = np.vstack((desired, desired))
-
-        ## Desired Features
-        desired = np.array([0.0]).reshape(1,1)
-        featuresnormalized = np.array([theta]).reshape(1,1)
-        error_theta = desired - featuresnormalized  # 1×1
-        #### Gain matrix
-        K = 0.5*np.diag([1.0])  # 1×1
-
-        #### Control law
-        I = np.eye(2, 2)
-        J_inv = np.linalg.pinv(J)
-        K2 = 100*np.diag([1.0, 1.0])  # 6×6
-        null_space = np.array([[0.0], [0.0]])
-        twist_z = J_inv @ (K @ error_theta)  + (I - J_inv@J)@K2@null_space
-
-
-
-        # Control Classic features
-        desired = np.array([0.0, -0.0]).reshape(2,1)
-        featuresnormalized = np.vstack((u1_c, v1_c))              
-        error_p1 = desired - featuresnormalized  # 1×1
         I = np.eye(4, 4)
-        K = 0.1*np.diag([0.0, 1.0])  # 1×1
-        K2 = 100*np.diag([0.01, 0.0, 1.0, 1.0])  # 6×6
+        K2 = 1*np.diag([1, 0.0, 1.0, 100.0])  # 6×6
+
+        # Compute error phi
+        desired_phi = 0.0
+        error_phi = desired_r - phi
 
         # Vector for velocity regularization
-        xi = np.array([error_theta[0, 0], error_p1[1, 0]/self.v_max]) 
-        velocity_x = (0.05)/(1 + 4*np.linalg.norm(xi))
-        null_space = np.array([[0.0], [0.0], [0.0], [0.0]])
+        xi = np.array([2*error_theta[0, 0], 100*error_phi]) 
+        velocity_x = (0.005)/(1 + np.linalg.norm(xi))
+        null_space = np.array([[velocity_x], [0.0], [0.0], [error_phi]])
 
         ## Control law
-        u = np.linalg.pinv(J_xy_p1) @ (K @ error_p1 - J_z_p1@twist_z)+ (I - np.linalg.pinv(J_xy_p1)@J_xy_p1)@K2@null_space
+        u = np.linalg.pinv(J_r_decoupled_xy) @ (K @ error_r - J_r_decoupled_z@twist_z)+ (I - np.linalg.pinv(J_r_decoupled_xy)@J_r_decoupled_xy)@K2@null_space
         return u, twist_z
         
         
@@ -269,7 +282,8 @@ class ZeroCmdFromFeatures:
         z2 = msg.data[9]
         z2 = 10*z2
 
-        u, twist_z = self.r_theta_control(p2, z2, p1, z1)
+        # Here We do the control (We are not controlling pitch )
+        u, twist_z = self.r_theta_control(p1=p2, z1=z2, p2=p1, z2=z1, gain_r=0.2, desired_r=0.0, gain_theta=0.5, desired_theta=0.0, desired_z=0.197)
 
         # Create a Twist with all zeros
         zero_twist = Twist()
