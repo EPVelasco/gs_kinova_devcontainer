@@ -273,7 +273,7 @@ def solver(N_prediction, theta_1_max, theta_1_min, theta_2_max, theta_2_min, the
         ln_error = ln(error_dual)
         u_error = theta_d_dot - u
 
-        ocp.model.cost_expr_ext_cost = 10*(ln_error.T@Q_dual@ln_error) + 0.01*(u_error.T @ R @ u_error)
+        ocp.model.cost_expr_ext_cost = 10*(ln_error.T@Q_dual@ln_error) + 0.01*(u_error.T @ R @ u_error) # gains of Cost function 
         ocp.model.cost_expr_ext_cost_e =  10*(ln_error.T@Q_dual@ln_error)
 
         ref_params = np.array([1.0, 0.0, 0.0, 0.0,    # Primary part dualquaternion

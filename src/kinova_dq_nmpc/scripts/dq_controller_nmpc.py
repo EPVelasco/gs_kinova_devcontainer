@@ -84,9 +84,9 @@ def get_desired_frame():
     #### Remember this is pose regulatio, this is not pose tracking if you want pose tracking you shoudl provide the desired qual quaternion dot #########
     # Get system Positions and quaternions
 
-    t = np.array([0.47, 0.0, 0.5])
-    r = np.array([0.5, 0.5, 0.5, 0.5])
-    #r = np.array([0, 0.7, 0.7, 0.0])
+    t = np.array([0.47, 0.0, 0.2])
+    #r = np.array([0.5, 0.5, 0.5, 0.5])
+    r = np.array([0, 0.7, 0.7, 0.0])
 
     # Initial Dualquaternion
     dual_d = dualquat_from_pose(r[0], r[1], r[2],  r[3], t[0], t[1], t[2])
