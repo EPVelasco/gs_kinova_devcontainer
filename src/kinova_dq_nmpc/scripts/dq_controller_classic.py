@@ -82,9 +82,9 @@ def get_desired_frame():
     #### Remember this is pose regulatio, this is not pose tracking if you want pose tracking you shoudl provide the desired qual quaternion dot #########
     # Get system Positions and quaternions
 
-    t = np.array([0.3, 0.0, 0.5])
-    r = np.array([0.9238795, 0, 0, 0.3826834])
-    #r = np.array([0.7, 0, 0.7, 0.0])
+    t = np.array([0.54, 0.0, 0.5])
+    #r = np.array([0.9238795, 0, 0, 0.3826834])
+    r = np.array([0, 0.7, 0.7, 0.0])
 
     # Initial Dualquaternion
     dual_d = dualquat_from_pose(r[0], r[1], r[2],  r[3], t[0], t[1], t[2])
@@ -103,7 +103,7 @@ def controller(dual_d, dual, q):
     # Create a diagonal matrix
     J = jacobian(q)
     I = np.eye(8, 8)
-    aux = (J@J.T + 0.0001*I)
+    aux = (J@J.T + 0.00000001*I)
     J_1 = J.T@ca.pinv(aux)
     # Compute error
     dual_error = error_dual(dual_d, dual)
@@ -184,11 +184,11 @@ def main():
     for k in range(0, t.shape[0]):
         tic = rospy.get_time()
         # Check for the shortest path
-        error_dual_no_filter = error_dual(dual_d, d[:, k])
-        if error_dual_no_filter[0] >= 0.0:
-            dual_d = dual_d
-        else:
-            dual_d = -dual_d
+        #error_dual_no_filter = error_dual(dual_d, d[:, k])
+        #if error_dual_no_filter[0] >= 0.0:
+        #    dual_d = dual_d
+        #else:
+        #    dual_d = -dual_d
         # Compute the norm of the error
         translation_e, rotation_e = dual_error(dual_d, d[:, k]) 
         orientation_cost = rotation_e.T@rotation_e
