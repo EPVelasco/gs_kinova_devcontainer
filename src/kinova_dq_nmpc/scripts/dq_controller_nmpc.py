@@ -84,8 +84,8 @@ def get_desired_frame():
     #### Remember this is pose regulatio, this is not pose tracking if you want pose tracking you shoudl provide the desired qual quaternion dot #########
     # Get system Positions and quaternions
 
-    t = np.array([0.54, 0.0, 0.5])
-    r = np.array([0.9238795, 0, 0, 0.3826834])
+    t = np.array([0.47, 0.0, 0.5])
+    r = np.array([0.5, 0.5, 0.5, 0.5])
     #r = np.array([0, 0.7, 0.7, 0.0])
 
     # Initial Dualquaternion
@@ -212,7 +212,7 @@ def main():
     theta_7_min = -1.2
 
     ocp = solver(N_prediction, theta_1_max, theta_1_min, theta_2_max, theta_2_min, theta_3_max, theta_3_min, theta_4_max, theta_4_min, theta_5_max, theta_5_min, theta_6_max, theta_6_min, theta_7_max, theta_7_min, sample_time, t_N, X[:, 0])
-    acados_ocp_solver = AcadosOcpSolver(ocp, json_file="acados_ocp_" + ocp.model.name + ".json", build= True, generate= True)
+    acados_ocp_solver = AcadosOcpSolver(ocp, json_file="acados_ocp_" + ocp.model.name + ".json", build= False, generate= False)
 
     ud = np.zeros((7, t.shape[0] - N_prediction), dtype = np.double)
 
@@ -290,6 +290,8 @@ def main():
         rospy.loginfo(message_ros + " " + str(orientation_cost) + " " + str(translation_cost))
         q[:, k + 1] = joint_angles 
         d[:, k + 1] = np.array(forward_kinematics_f(q[0, k+1], q[1, k+1], q[2, k+1], q[3, k+1], q[4, k+1], q[5, k+1], q[6, k+1])).reshape((8, ))
+        X[0:8, k + 1] = d[:, k + 1]
+        X[8:15, k + 1] = q[:, k + 1]
     
     ## Set Velocities to zero
     send_joint_velocity(joint_velocity_pub_, np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]))
