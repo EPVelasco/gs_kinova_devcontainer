@@ -6,3 +6,4 @@ log/
 __pycache__/
 ./devcontainer
 src/dual_quaternion/
+c_generated_code/
