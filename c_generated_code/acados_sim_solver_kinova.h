@@ -57,7 +57,7 @@ typedef struct kinova_sim_solver_capsule
 
     /* external functions */
     // ERK
-    external_function_param_casadi * sim_expl_vde_forw;
+    external_function_param_casadi * sim_forw_vde_casadi;
     external_function_param_casadi * sim_vde_adj_casadi;
     external_function_param_casadi * sim_expl_ode_fun_casadi;
     external_function_param_casadi * sim_expl_ode_hess;
@@ -80,7 +80,6 @@ typedef struct kinova_sim_solver_capsule
 
 ACADOS_SYMBOL_EXPORT int kinova_acados_sim_create(kinova_sim_solver_capsule *capsule);
 ACADOS_SYMBOL_EXPORT int kinova_acados_sim_solve(kinova_sim_solver_capsule *capsule);
-
 ACADOS_SYMBOL_EXPORT int kinova_acados_sim_free(kinova_sim_solver_capsule *capsule);
 ACADOS_SYMBOL_EXPORT int kinova_acados_sim_update_params(kinova_sim_solver_capsule *capsule, double *value, int np);
 

@@ -40,13 +40,11 @@
 #include "acados_solver_kinova.h"
 
 // blasfeo
-#include "blasfeo_d_aux_ext_dep.h"
+#include "blasfeo/include/blasfeo_d_aux_ext_dep.h"
 
 #define NX     KINOVA_NX
-#define NP     KINOVA_NP
 #define NU     KINOVA_NU
 #define NBX0   KINOVA_NBX0
-#define NP_GLOBAL   KINOVA_NP_GLOBAL
 
 
 int main()
@@ -71,42 +69,43 @@ int main()
     ocp_nlp_out *nlp_out = kinova_acados_get_nlp_out(acados_ocp_capsule);
     ocp_nlp_solver *nlp_solver = kinova_acados_get_nlp_solver(acados_ocp_capsule);
     void *nlp_opts = kinova_acados_get_nlp_opts(acados_ocp_capsule);
+
     // initial condition
     double lbx0[NBX0];
     double ubx0[NBX0];
-    lbx0[0] = 0.49936085672249486;
-    ubx0[0] = 0.49936085672249486;
-    lbx0[1] = 0.4998831870567058;
-    ubx0[1] = 0.4998831870567058;
-    lbx0[2] = 0.5000416402238678;
-    ubx0[2] = 0.5000416402238678;
-    lbx0[3] = 0.5007133831980434;
-    ubx0[3] = 0.5007133831980434;
-    lbx0[4] = -0.22314883844670813;
-    ubx0[4] = -0.22314883844670813;
-    lbx0[5] = 0.005865673642205287;
-    ubx0[5] = 0.005865673642205287;
-    lbx0[6] = -0.005219050218049061;
-    ubx0[6] = -0.005219050218049061;
-    lbx0[7] = 0.22190216932223553;
-    ubx0[7] = 0.22190216932223553;
-    lbx0[8] = -0.000007433947033952393;
-    ubx0[8] = -0.000007433947033952393;
-    lbx0[9] = 0.26020448223671266;
-    ubx0[9] = 0.26020448223671266;
-    lbx0[10] = 3.1400400204570196;
-    ubx0[10] = 3.1400400204570196;
-    lbx0[11] = -2.270113865474239;
-    ubx0[11] = -2.270113865474239;
-    lbx0[12] = 0.000003844787332063504;
-    ubx0[12] = 0.000003844787332063504;
-    lbx0[13] = 0.9596720346874488;
-    ubx0[13] = 0.9596720346874488;
-    lbx0[14] = 1.569999618501588;
-    ubx0[14] = 1.569999618501588;
+    lbx0[0] = -1;
+    ubx0[0] = -1;
+    lbx0[1] = 0.00000000000000006123233995736766;
+    ubx0[1] = 0.00000000000000006123233995736766;
+    lbx0[2] = 0;
+    ubx0[2] = 0;
+    lbx0[3] = 0;
+    ubx0[3] = 0;
+    lbx0[4] = 0;
+    ubx0[4] = 0;
+    lbx0[5] = 0;
+    ubx0[5] = 0;
+    lbx0[6] = 0.012425049999999988;
+    ubx0[6] = 0.012425049999999988;
+    lbx0[7] = -0.5936925000000001;
+    ubx0[7] = -0.5936925000000001;
+    lbx0[8] = 0;
+    ubx0[8] = 0;
+    lbx0[9] = 0;
+    ubx0[9] = 0;
+    lbx0[10] = 0;
+    ubx0[10] = 0;
+    lbx0[11] = 0;
+    ubx0[11] = 0;
+    lbx0[12] = 0;
+    ubx0[12] = 0;
+    lbx0[13] = 0;
+    ubx0[13] = 0;
+    lbx0[14] = 0;
+    ubx0[14] = 0;
 
-    ocp_nlp_constraints_model_set(nlp_config, nlp_dims, nlp_in, nlp_out, 0, "lbx", lbx0);
-    ocp_nlp_constraints_model_set(nlp_config, nlp_dims, nlp_in, nlp_out, 0, "ubx", ubx0);
+    ocp_nlp_constraints_model_set(nlp_config, nlp_dims, nlp_in, 0, "lbx", lbx0);
+    ocp_nlp_constraints_model_set(nlp_config, nlp_dims, nlp_in, 0, "ubx", ubx0);
 
     // initialization for state values
     double x_init[NX];
@@ -147,17 +146,20 @@ int main()
     double utraj[NU * N];
 
     // solve ocp in loop
+    int rti_phase = 0;
+
     for (int ii = 0; ii < NTIMINGS; ii++)
     {
         // initialize solution
         for (int i = 0; i < N; i++)
         {
-            ocp_nlp_out_set(nlp_config, nlp_dims, nlp_out, nlp_in, i, "x", x_init);
-            ocp_nlp_out_set(nlp_config, nlp_dims, nlp_out, nlp_in, i, "u", u0);
+            ocp_nlp_out_set(nlp_config, nlp_dims, nlp_out, i, "x", x_init);
+            ocp_nlp_out_set(nlp_config, nlp_dims, nlp_out, i, "u", u0);
         }
-        ocp_nlp_out_set(nlp_config, nlp_dims, nlp_out, nlp_in, N, "x", x_init);
+        ocp_nlp_out_set(nlp_config, nlp_dims, nlp_out, N, "x", x_init);
+        ocp_nlp_solver_opts_set(nlp_config, nlp_opts, "rti_phase", &rti_phase);
         status = kinova_acados_solve(acados_ocp_capsule);
-        ocp_nlp_get(nlp_solver, "time_tot", &elapsed_time);
+        ocp_nlp_get(nlp_config, nlp_solver, "time_tot", &elapsed_time);
         min_time = MIN(elapsed_time, min_time);
     }
 
@@ -186,15 +188,13 @@ int main()
 
     // get solution
     ocp_nlp_out_get(nlp_config, nlp_dims, nlp_out, 0, "kkt_norm_inf", &kkt_norm_inf);
-    ocp_nlp_get(nlp_solver, "sqp_iter", &sqp_iter);
+    ocp_nlp_get(nlp_config, nlp_solver, "sqp_iter", &sqp_iter);
 
     kinova_acados_print_stats(acados_ocp_capsule);
 
     printf("\nSolver info:\n");
     printf(" SQP iterations %2d\n minimum time for %d solve %f [ms]\n KKT %e\n",
            sqp_iter, NTIMINGS, min_time*1000, kkt_norm_inf);
-
-
 
     // free solver
     status = kinova_acados_free(acados_ocp_capsule);

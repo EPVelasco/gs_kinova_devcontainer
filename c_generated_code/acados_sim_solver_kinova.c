@@ -73,25 +73,22 @@ int kinova_acados_sim_create(kinova_sim_solver_capsule * capsule)
     const int np = KINOVA_NP;
     bool tmp_bool;
 
+    
     double Tsim = 0.045454545454545456;
-
-    external_function_opts ext_fun_opts;
-    external_function_opts_set_to_default(&ext_fun_opts);
-    ext_fun_opts.external_workspace = false;
 
     
     // explicit ode
-    capsule->sim_expl_vde_forw = (external_function_param_casadi *) malloc(sizeof(external_function_param_casadi));
+    capsule->sim_forw_vde_casadi = (external_function_param_casadi *) malloc(sizeof(external_function_param_casadi));
     capsule->sim_vde_adj_casadi = (external_function_param_casadi *) malloc(sizeof(external_function_param_casadi));
     capsule->sim_expl_ode_fun_casadi = (external_function_param_casadi *) malloc(sizeof(external_function_param_casadi));
 
-    capsule->sim_expl_vde_forw->casadi_fun = &kinova_expl_vde_forw;
-    capsule->sim_expl_vde_forw->casadi_n_in = &kinova_expl_vde_forw_n_in;
-    capsule->sim_expl_vde_forw->casadi_n_out = &kinova_expl_vde_forw_n_out;
-    capsule->sim_expl_vde_forw->casadi_sparsity_in = &kinova_expl_vde_forw_sparsity_in;
-    capsule->sim_expl_vde_forw->casadi_sparsity_out = &kinova_expl_vde_forw_sparsity_out;
-    capsule->sim_expl_vde_forw->casadi_work = &kinova_expl_vde_forw_work;
-    external_function_param_casadi_create(capsule->sim_expl_vde_forw, np, &ext_fun_opts);
+    capsule->sim_forw_vde_casadi->casadi_fun = &kinova_expl_vde_forw;
+    capsule->sim_forw_vde_casadi->casadi_n_in = &kinova_expl_vde_forw_n_in;
+    capsule->sim_forw_vde_casadi->casadi_n_out = &kinova_expl_vde_forw_n_out;
+    capsule->sim_forw_vde_casadi->casadi_sparsity_in = &kinova_expl_vde_forw_sparsity_in;
+    capsule->sim_forw_vde_casadi->casadi_sparsity_out = &kinova_expl_vde_forw_sparsity_out;
+    capsule->sim_forw_vde_casadi->casadi_work = &kinova_expl_vde_forw_work;
+    external_function_param_casadi_create(capsule->sim_forw_vde_casadi, np);
 
     capsule->sim_vde_adj_casadi->casadi_fun = &kinova_expl_vde_adj;
     capsule->sim_vde_adj_casadi->casadi_n_in = &kinova_expl_vde_adj_n_in;
@@ -99,7 +96,7 @@ int kinova_acados_sim_create(kinova_sim_solver_capsule * capsule)
     capsule->sim_vde_adj_casadi->casadi_sparsity_in = &kinova_expl_vde_adj_sparsity_in;
     capsule->sim_vde_adj_casadi->casadi_sparsity_out = &kinova_expl_vde_adj_sparsity_out;
     capsule->sim_vde_adj_casadi->casadi_work = &kinova_expl_vde_adj_work;
-    external_function_param_casadi_create(capsule->sim_vde_adj_casadi, np, &ext_fun_opts);
+    external_function_param_casadi_create(capsule->sim_vde_adj_casadi, np);
 
     capsule->sim_expl_ode_fun_casadi->casadi_fun = &kinova_expl_ode_fun;
     capsule->sim_expl_ode_fun_casadi->casadi_n_in = &kinova_expl_ode_fun_n_in;
@@ -107,7 +104,7 @@ int kinova_acados_sim_create(kinova_sim_solver_capsule * capsule)
     capsule->sim_expl_ode_fun_casadi->casadi_sparsity_in = &kinova_expl_ode_fun_sparsity_in;
     capsule->sim_expl_ode_fun_casadi->casadi_sparsity_out = &kinova_expl_ode_fun_sparsity_out;
     capsule->sim_expl_ode_fun_casadi->casadi_work = &kinova_expl_ode_fun_work;
-    external_function_param_casadi_create(capsule->sim_expl_ode_fun_casadi, np, &ext_fun_opts);
+    external_function_param_casadi_create(capsule->sim_expl_ode_fun_casadi, np);
 
     
 
@@ -157,7 +154,7 @@ int kinova_acados_sim_create(kinova_sim_solver_capsule * capsule)
 
     // model functions
     kinova_sim_config->model_set(kinova_sim_in->model,
-                 "expl_vde_forw", capsule->sim_expl_vde_forw);
+                 "expl_vde_forw", capsule->sim_forw_vde_casadi);
     kinova_sim_config->model_set(kinova_sim_in->model,
                  "expl_vde_adj", capsule->sim_vde_adj_casadi);
     kinova_sim_config->model_set(kinova_sim_in->model,
@@ -165,7 +162,7 @@ int kinova_acados_sim_create(kinova_sim_solver_capsule * capsule)
 
     // sim solver
     sim_solver *kinova_sim_solver = sim_solver_create(kinova_sim_config,
-                                               kinova_sim_dims, kinova_sim_opts, kinova_sim_in);
+                                               kinova_sim_dims, kinova_sim_opts);
     capsule->acados_sim_solver = kinova_sim_solver;
 
 
@@ -225,8 +222,6 @@ int kinova_acados_sim_solve(kinova_sim_solver_capsule *capsule)
 }
 
 
-
-
 int kinova_acados_sim_free(kinova_sim_solver_capsule *capsule)
 {
     // free memory
@@ -238,10 +233,10 @@ int kinova_acados_sim_free(kinova_sim_solver_capsule *capsule)
     sim_config_destroy(capsule->acados_sim_config);
 
     // free external function
-    external_function_param_casadi_free(capsule->sim_expl_vde_forw);
+    external_function_param_casadi_free(capsule->sim_forw_vde_casadi);
     external_function_param_casadi_free(capsule->sim_vde_adj_casadi);
     external_function_param_casadi_free(capsule->sim_expl_ode_fun_casadi);
-    free(capsule->sim_expl_vde_forw);
+    free(capsule->sim_forw_vde_casadi);
     free(capsule->sim_vde_adj_casadi);
     free(capsule->sim_expl_ode_fun_casadi);
 
@@ -259,7 +254,7 @@ int kinova_acados_sim_update_params(kinova_sim_solver_capsule *capsule, double *
             " External function has %i parameters. Exiting.\n", np, casadi_np);
         exit(1);
     }
-    capsule->sim_expl_vde_forw[0].set_param(capsule->sim_expl_vde_forw, p);
+    capsule->sim_forw_vde_casadi[0].set_param(capsule->sim_forw_vde_casadi, p);
     capsule->sim_vde_adj_casadi[0].set_param(capsule->sim_vde_adj_casadi, p);
     capsule->sim_expl_ode_fun_casadi[0].set_param(capsule->sim_expl_ode_fun_casadi, p);
 

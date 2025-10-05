@@ -30,48 +30,47 @@
 
 
 
+
+
 # define sources and use make's implicit rules to generate object files (*.o)
 
 # model
 MODEL_SRC=
-
 MODEL_SRC+= kinova_model/kinova_expl_ode_fun.c
 MODEL_SRC+= kinova_model/kinova_expl_vde_forw.c
 MODEL_SRC+= kinova_model/kinova_expl_vde_adj.c
-
 MODEL_OBJ := $(MODEL_SRC:.c=.o)
+
 # optimal control problem - mostly CasADi exports
 OCP_SRC=
-
-
 OCP_SRC+= kinova_cost/kinova_cost_ext_cost_0_fun.c
-OCP_SRC+= kinova_cost/kinova_cost_ext_cost_0_fun_jac_hess.c
 OCP_SRC+= kinova_cost/kinova_cost_ext_cost_0_fun_jac.c
+OCP_SRC+= kinova_cost/kinova_cost_ext_cost_0_fun_jac_hess.c
 OCP_SRC+= kinova_cost/kinova_cost_ext_cost_fun.c
-OCP_SRC+= kinova_cost/kinova_cost_ext_cost_fun_jac_hess.c
 OCP_SRC+= kinova_cost/kinova_cost_ext_cost_fun_jac.c
+OCP_SRC+= kinova_cost/kinova_cost_ext_cost_fun_jac_hess.c
 OCP_SRC+= kinova_cost/kinova_cost_ext_cost_e_fun.c
-OCP_SRC+= kinova_cost/kinova_cost_ext_cost_e_fun_jac_hess.c
 OCP_SRC+= kinova_cost/kinova_cost_ext_cost_e_fun_jac.c
+OCP_SRC+= kinova_cost/kinova_cost_ext_cost_e_fun_jac_hess.c
 
 OCP_SRC+= acados_solver_kinova.c
-
 OCP_OBJ := $(OCP_SRC:.c=.o)
+
 # for sim solver
 SIM_SRC= acados_sim_solver_kinova.c
 SIM_OBJ := $(SIM_SRC:.c=.o)
 
-# for target example_sim
-EX_SIM_SRC= main_sim_kinova.c
-EX_SIM_OBJ := $(EX_SIM_SRC:.c=.o)
-EX_SIM_EXE := $(EX_SIM_SRC:.c=)
 # for target example
 EX_SRC= main_kinova.c
 EX_OBJ := $(EX_SRC:.c=.o)
 EX_EXE := $(EX_SRC:.c=)
 
+# for target example_sim
+EX_SIM_SRC= main_sim_kinova.c
+EX_SIM_OBJ := $(EX_SIM_SRC:.c=.o)
+EX_SIM_EXE := $(EX_SIM_SRC:.c=)
 
-# combine model, (potentially) sim and ocp object files
+# combine model, sim and ocp object files
 OBJ=
 OBJ+= $(MODEL_OBJ)
 OBJ+= $(SIM_OBJ)
@@ -92,13 +91,11 @@ CPPFLAGS+= -I$(INCLUDE_PATH)/hpipm/include
 
 # define the c-compiler flags for make's implicit rules
 CFLAGS = -fPIC -std=c99   -O2#-fno-diagnostics-show-line-numbers -g
-
 # # Debugging
 # CFLAGS += -g3
 
 # linker flags
 LDFLAGS+= -L$(LIB_PATH)
-
 
 # link to libraries
 LDLIBS+= -lacados
@@ -115,7 +112,9 @@ LIBACADOS_SIM_SOLVER=lib$(SIM_SRC:.c=.so)
 # virtual targets
 .PHONY : all clean
 
-	all: clean example_sim example
+#all: clean example_sim example shared_lib
+
+all: clean example_sim example
 shared_lib: bundled_shared_lib ocp_shared_lib sim_shared_lib
 
 # some linker targets
@@ -125,14 +124,15 @@ example: $(EX_OBJ) $(OBJ)
 example_sim: $(EX_SIM_OBJ) $(MODEL_OBJ) $(SIM_OBJ)
 	$(CC) $^ -o $(EX_SIM_EXE) $(LDFLAGS) $(LDLIBS)
 
-sim_shared_lib: $(SIM_OBJ) $(MODEL_OBJ)
-	$(CC) -shared $^ -o $(LIBACADOS_SIM_SOLVER) $(LDFLAGS) $(LDLIBS)
 bundled_shared_lib: $(OBJ)
 	$(CC) -shared $^ -o $(LIBACADOS_SOLVER) $(LDFLAGS) $(LDLIBS)
 
 ocp_shared_lib: $(OCP_OBJ) $(MODEL_OBJ)
 	$(CC) -shared $^ -o $(LIBACADOS_OCP_SOLVER) $(LDFLAGS) $(LDLIBS) \
 	-L$(EXTERNAL_DIR) -l$(EXTERNAL_LIB)
+
+sim_shared_lib: $(SIM_OBJ) $(MODEL_OBJ)
+	$(CC) -shared $^ -o $(LIBACADOS_SIM_SOLVER) $(LDFLAGS) $(LDLIBS)
 
 
 # Cython targets
@@ -146,12 +146,11 @@ ocp_cython_c: ocp_shared_lib
 ocp_cython_o: ocp_cython_c
 	$(CC) $(ACADOS_FLAGS) -c -O2 \
 	-fPIC \
-	-DNPY_NO_DEPRECATED_API=NPY_1_7_API_VERSION \
 	-o acados_ocp_solver_pyx.o \
 	-I $(INCLUDE_PATH)/blasfeo/include/ \
 	-I $(INCLUDE_PATH)/hpipm/include/ \
 	-I $(INCLUDE_PATH) \
-	-I /home/epvs/.local/lib/python3.8/site-packages/numpy/core/include \
+	-I /usr/lib/python3/dist-packages/numpy/core/include \
 	-I /usr/include/python3.8 \
 	acados_ocp_solver_pyx.c \
 
@@ -162,7 +161,6 @@ ocp_cython: ocp_cython_o
 	acados_ocp_solver_pyx.o \
 	$(abspath .)/libacados_ocp_solver_kinova.so \
 	$(LDFLAGS) $(LDLIBS)
-
 
 # Sim Cython targets
 sim_cython_c: sim_shared_lib
@@ -175,12 +173,11 @@ sim_cython_c: sim_shared_lib
 sim_cython_o: sim_cython_c
 	$(CC) $(ACADOS_FLAGS) -c -O2 \
 	-fPIC \
-	-DNPY_NO_DEPRECATED_API=NPY_1_7_API_VERSION \
 	-o acados_sim_solver_pyx.o \
 	-I $(INCLUDE_PATH)/blasfeo/include/ \
 	-I $(INCLUDE_PATH)/hpipm/include/ \
 	-I $(INCLUDE_PATH) \
-	-I /home/epvs/.local/lib/python3.8/site-packages/numpy/core/include \
+	-I /usr/lib/python3/dist-packages/numpy/core/include \
 	-I /usr/include/python3.8 \
 	acados_sim_solver_pyx.c \
 
@@ -196,6 +193,7 @@ clean:
 	$(RM) $(OBJ) $(EX_OBJ) $(EX_SIM_OBJ)
 	$(RM) $(LIBACADOS_SOLVER) $(LIBACADOS_OCP_SOLVER) $(LIBACADOS_SIM_SOLVER)
 	$(RM) $(EX_EXE) $(EX_SIM_EXE)
+
 clean_ocp_shared_lib:
 	$(RM) $(LIBACADOS_OCP_SOLVER)
 	$(RM) $(OCP_OBJ)

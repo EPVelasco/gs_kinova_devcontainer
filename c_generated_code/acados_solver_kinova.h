@@ -40,7 +40,6 @@
 #define KINOVA_NZ     0
 #define KINOVA_NU     7
 #define KINOVA_NP     22
-#define KINOVA_NP_GLOBAL     0
 #define KINOVA_NBX    0
 #define KINOVA_NBX0   15
 #define KINOVA_NBU    7
@@ -95,38 +94,30 @@ typedef struct kinova_solver_capsule
     unsigned int nlp_np;
 
     /* external functions */
-
     // dynamics
 
-    external_function_external_param_casadi *expl_vde_forw;
-    external_function_external_param_casadi *expl_ode_fun;
-    external_function_external_param_casadi *expl_vde_adj;
+    external_function_param_casadi *forw_vde_casadi;
+    external_function_param_casadi *expl_ode_fun;
 
 
 
 
     // cost
 
-    external_function_external_param_casadi *ext_cost_fun;
-    external_function_external_param_casadi *ext_cost_fun_jac;
-    external_function_external_param_casadi *ext_cost_fun_jac_hess;
+    external_function_param_casadi *ext_cost_fun;
+    external_function_param_casadi *ext_cost_fun_jac;
+    external_function_param_casadi *ext_cost_fun_jac_hess;
 
 
 
+    external_function_param_casadi ext_cost_0_fun;
+    external_function_param_casadi ext_cost_0_fun_jac;
+    external_function_param_casadi ext_cost_0_fun_jac_hess;
 
 
-    external_function_external_param_casadi ext_cost_0_fun;
-    external_function_external_param_casadi ext_cost_0_fun_jac;
-    external_function_external_param_casadi ext_cost_0_fun_jac_hess;
-
-
-
-
-    external_function_external_param_casadi ext_cost_e_fun;
-    external_function_external_param_casadi ext_cost_e_fun_jac;
-    external_function_external_param_casadi ext_cost_e_fun_jac_hess;
-
-
+    external_function_param_casadi ext_cost_e_fun;
+    external_function_param_casadi ext_cost_e_fun_jac;
+    external_function_param_casadi ext_cost_e_fun_jac_hess;
 
     // constraints
 
@@ -162,13 +153,8 @@ ACADOS_SYMBOL_EXPORT int kinova_acados_update_time_steps(kinova_solver_capsule *
 ACADOS_SYMBOL_EXPORT int kinova_acados_update_qp_solver_cond_N(kinova_solver_capsule * capsule, int qp_solver_cond_N);
 ACADOS_SYMBOL_EXPORT int kinova_acados_update_params(kinova_solver_capsule * capsule, int stage, double *value, int np);
 ACADOS_SYMBOL_EXPORT int kinova_acados_update_params_sparse(kinova_solver_capsule * capsule, int stage, int *idx, double *p, int n_update);
-ACADOS_SYMBOL_EXPORT int kinova_acados_set_p_global_and_precompute_dependencies(kinova_solver_capsule* capsule, double* data, int data_len);
 
 ACADOS_SYMBOL_EXPORT int kinova_acados_solve(kinova_solver_capsule * capsule);
-ACADOS_SYMBOL_EXPORT int kinova_acados_setup_qp_matrices_and_factorize(kinova_solver_capsule* capsule);
-
-
-
 ACADOS_SYMBOL_EXPORT int kinova_acados_free(kinova_solver_capsule * capsule);
 ACADOS_SYMBOL_EXPORT void kinova_acados_print_stats(kinova_solver_capsule * capsule);
 ACADOS_SYMBOL_EXPORT int kinova_acados_custom_update(kinova_solver_capsule* capsule, double* data, int data_len);
