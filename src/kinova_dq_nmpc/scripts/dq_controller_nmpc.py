@@ -270,7 +270,7 @@ def main():
         translation_cost = translation_e.T@translation_e
         # Control law
 
-        omega_control[:, k] = controller(dual_d, d[:, k], q[:, k])
+        #omega_control[:, k] = controller(dual_d, d[:, k], q[:, k])
         omega_control[:, k] = aux_control
 
         # Send COntrol actions
