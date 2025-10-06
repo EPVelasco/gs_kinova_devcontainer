@@ -5,4 +5,4 @@ log/
 *.pyc
 __pycache__/
 ./devcontainer
-c_generated_code
+/c_generated_code
