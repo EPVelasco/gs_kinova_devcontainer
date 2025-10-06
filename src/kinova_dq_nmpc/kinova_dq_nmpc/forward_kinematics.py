@@ -42,7 +42,7 @@ spherical_wrist_2_link_rpy = np.array([1.5708, 0, 0])
 
 # Bracelet link
 # Joint 7
-bracelet_link_position = np.array([0 -0.10593 -0.00017505])
+bracelet_link_position = np.array([0, -0.10593, -0.00017505])
 bracelet_link_rpy = np.array([-1.5708, 0, 0])
 
 # End effector link

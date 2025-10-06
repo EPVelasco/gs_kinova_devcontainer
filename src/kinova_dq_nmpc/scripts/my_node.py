@@ -56,7 +56,7 @@ def tranform_data(origin_frame, child_frame, dqd, tf_pub):
 def main():
     # Sample Time Defintion
     sample_time = 0.03
-    t_f = 60
+    t_f = 60000
 
     # Time defintion aux variable
     t = np.arange(0, t_f + sample_time, sample_time)
