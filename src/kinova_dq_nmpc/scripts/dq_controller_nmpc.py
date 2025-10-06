@@ -12,6 +12,7 @@ from sensor_msgs.msg import JointState
 
 from kortex_driver.msg import Base_JointSpeeds, JointSpeed
 from acados_template import AcadosOcpSolver, AcadosSimSolver
+import argparse
 
 
 
@@ -129,6 +130,15 @@ def controller(dual_d, dual, q):
     return control_reshape
 
 def main():
+    
+    
+    # Arguments for build or generate de solver
+    parser = argparse.ArgumentParser(description="Dual Quaternion NMPC controller for Kinova Gen3")
+    parser.add_argument("--build", action="store_true", help="Build the acados solver (default: False)")
+    parser.add_argument("--generate", action="store_true", help="Generate the acados solver (default: False)")
+    args, _ = parser.parse_known_args()  
+    
+    
     # Topics 
     # Jointstates
     joint_states_sub_ = rospy.Subscriber("/my_gen3/joint_states", 
@@ -212,8 +222,14 @@ def main():
     theta_7_min = -1.2
 
     ocp = solver(N_prediction, theta_1_max, theta_1_min, theta_2_max, theta_2_min, theta_3_max, theta_3_min, theta_4_max, theta_4_min, theta_5_max, theta_5_min, theta_6_max, theta_6_min, theta_7_max, theta_7_min, sample_time, t_N, X[:, 0])
-    acados_ocp_solver = AcadosOcpSolver(ocp, json_file="acados_ocp_" + ocp.model.name + ".json", build= False, generate= False)
-
+   # acados_ocp_solver = AcadosOcpSolver(ocp, json_file="acados_ocp_" + ocp.model.name + ".json", build= True, generate= True)
+    acados_ocp_solver = AcadosOcpSolver(
+        ocp,
+        json_file="acados_ocp_" + ocp.model.name + ".json",
+        build=args.build,
+        generate=args.generate
+    )
+    
     ud = np.zeros((7, t.shape[0] - N_prediction), dtype = np.double)
 
 
