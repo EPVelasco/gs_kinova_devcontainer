@@ -243,7 +243,7 @@ class ZeroCmdFromFeatures:
         J_r_decoupled_xy = jacobian_r@J_image_xy
         J_r_decoupled_z = jacobian_r@J_image_z
 
-        # You can modify the desired theta and z (Be careful with the gain)
+        # You can modify the desired theta and z 
         twist_z, error_theta = self.control_theta_z(p1=p1, z1=z1, p2=p2, z2=z2, gain=gain_theta, desired_theta=desired_theta, desired_z=desired_z)
 
         # Desired Features
@@ -255,11 +255,11 @@ class ZeroCmdFromFeatures:
         K = gain_r*np.diag([1.0])  # 1×1
 
         I = np.eye(4, 4)
-        K2 = 1*np.diag([1, 0.0, 1.0, 100.0])  # 6×6
+        K2 = 1*np.diag([1, 0.0, 1.0, 1000.0])  # 6×6
 
         # Compute error phi
         desired_phi = 0.0
-        error_phi = desired_r - phi
+        error_phi = desired_phi - phi
 
         # Vector for velocity regularization
         xi = np.array([2*error_theta[0, 0], 100*error_phi]) 
