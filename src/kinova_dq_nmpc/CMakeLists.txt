@@ -164,6 +164,7 @@ catkin_install_python(PROGRAMS
   scripts/manual_move.py
   scripts/classic_visual_servoing.py
   scripts/dq_controller_nmpc.py
+  scripts/dq_controller_nmpc_features.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 

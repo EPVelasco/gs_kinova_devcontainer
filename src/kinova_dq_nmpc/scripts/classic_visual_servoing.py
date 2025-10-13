@@ -192,11 +192,9 @@ class ZeroCmdFromFeatures:
         I = np.eye(2, 2)
         J_inv = np.linalg.pinv(J)
         K2 = 1*np.diag([1.0, 1.0])  # 6×6
-        
-        z_m = (z1+z2)/2.0
 
         # Be careful the way we define the error of position for z this si the inverse behavior of a z in the camera
-        null_space = np.array([[z_m - desired_z], [0.0]])
+        null_space = np.array([[z1 - desired_z], [0.0]])
         twist_z = J_inv @ (K @ error_theta)  + (I - J_inv@J)@K2@null_space
         return twist_z, error_theta
         
@@ -246,7 +244,7 @@ class ZeroCmdFromFeatures:
         J_r_decoupled_z = jacobian_r@J_image_z
 
         # You can modify the desired theta and z (Be careful with the gain)
-        twist_z, error_theta = self.control_theta_z(p1=p2, z1=z2, p2=p1, z2=z1, gain=gain_theta, desired_theta=desired_theta, desired_z=desired_z)
+        twist_z, error_theta = self.control_theta_z(p1=p1, z1=z1, p2=p2, z2=z2, gain=gain_theta, desired_theta=desired_theta, desired_z=desired_z)
 
         # Desired Features
         desired = np.array([desired_r]).reshape(1,1)
@@ -257,15 +255,15 @@ class ZeroCmdFromFeatures:
         K = gain_r*np.diag([1.0])  # 1×1
 
         I = np.eye(4, 4)
-        K2 = 1*np.diag([1, 0.0, 1.0, 10000.0])  # 6×6
+        K2 = 1*np.diag([1, 0.0, 1.0, 100.0])  # 6×6
 
         # Compute error phi
         desired_phi = 0.0
-        error_phi = desired_phi - phi
+        error_phi = desired_r - phi
 
         # Vector for velocity regularization
-        xi = np.array([2*error_theta[0, 0], error_phi]) 
-        velocity_x = (0.001)/(1 + np.linalg.norm(xi))
+        xi = np.array([2*error_theta[0, 0], 100*error_phi]) 
+        velocity_x = (0.005)/(1 + np.linalg.norm(xi))
         null_space = np.array([[velocity_x], [0.0], [0.0], [error_phi]])
 
         ## Control law
@@ -287,23 +285,15 @@ class ZeroCmdFromFeatures:
         # Here We do the control (We are not controlling pitch )
         u, twist_z = self.r_theta_control(p1=p2, z1=z2, p2=p1, z2=z1, gain_r=0.2, desired_r=0.0, gain_theta=0.5, desired_theta=0.0, desired_z=0.197)
 
-       
-        # limits
-        MAX_LIN = 0.03   # m/s  (30 mm/s)
-        MAX_ANG = 2.0    # rad/s
-
-        def sat(val, lim):
-            return float(np.clip(val, -lim, lim))
-
-         # Create a Twist to satured velocites
+        # Create a Twist with all zeros
         zero_twist = Twist()
-        zero_twist.linear.x  = sat(u[0, 0],      MAX_LIN)
-        zero_twist.linear.y  = sat(u[1, 0],      MAX_LIN)
-        zero_twist.linear.z  = sat(twist_z[0, 0], MAX_LIN)
+        zero_twist.linear.x = u[0, 0]
+        zero_twist.linear.y = u[1, 0]
+        zero_twist.linear.z = twist_z[0, 0]
 
-        zero_twist.angular.x = sat(u[2, 0],       MAX_ANG)
-        zero_twist.angular.y = sat(u[3, 0],       MAX_ANG)
-        zero_twist.angular.z = sat(twist_z[1, 0], MAX_ANG)
+        zero_twist.angular.x = u[2, 0]
+        zero_twist.angular.y = u[3, 0]
+        zero_twist.angular.z = twist_z[1, 0]
 
         # Publish zero command
         self.cmd_pub.publish(zero_twist)
