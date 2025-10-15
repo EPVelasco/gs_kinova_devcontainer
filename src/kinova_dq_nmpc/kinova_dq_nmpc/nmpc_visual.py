@@ -555,7 +555,7 @@ def solverCamera(N_prediction, ts, t_N, x0):
         vz_max = 0.01
 
         wx_max = 0.0
-        wy_max = 0.01
+        wy_max = 0.1
         wz_max = 1.0
 
         R = MX.zeros(6, 6)
@@ -566,12 +566,15 @@ def solverCamera(N_prediction, ts, t_N, x0):
         R[5, 5] = 20/wz_max
 
         # Extracts the z values of the system
-        z1 = x[2]*10 # Just multiplying to have a better conditiones problem the values are quite small
-        z2 = x[5]*10 # Just multiplying to have a better conditiones problem the values are quite small
+        z1 = x[2] # Just multiplying to have a better conditiones problem the values are quite small
+        z2 = x[5] # Just multiplying to have a better conditiones problem the values are quite small
         z_average = (z1 + z2) / 2
 
-        zd = 0.195*10
+        zd = 0.195
         ze = zd-z_average
+        
+        ze1 = zd - z1
+        ze2 = zd - z2       
 
         theta = x[6]
         r = x[7]
@@ -594,8 +597,10 @@ def solverCamera(N_prediction, ts, t_N, x0):
         velocity_error = Vd - u
 
 
-        ocp.model.cost_expr_ext_cost = 50*(theta*theta) + velocity_error.T@R@velocity_error + 0.1*(r_normalized*r_normalized) + 1*(ze*ze) + 50*(phi*phi)
-        ocp.model.cost_expr_ext_cost_e =  50*(theta*theta) + 0.1*(r_normalized*r_normalized) + 1*(ze*ze)+ 50*(phi*phi)
+        # ocp.model.cost_expr_ext_cost = 50*(theta*theta) + velocity_error.T@R@velocity_error + 0.1*(r_normalized*r_normalized) + 1*(ze*ze) + 50*(phi*phi)
+        # ocp.model.cost_expr_ext_cost_e =  50*(theta*theta) + 0.1*(r_normalized*r_normalized) + 1*(ze*ze)+ 50*(phi*phi)
+        ocp.model.cost_expr_ext_cost = 50*(theta*theta) + velocity_error.T@R@velocity_error + 500*20*(ze1*ze1) + 500*20*(ze2*ze2) + 0.1*(r_normalized*r_normalized)
+        ocp.model.cost_expr_ext_cost_e =  50*(theta*theta) + 500*20*(ze1*ze1) + 500*20*(ze2*ze2) + 0.1*(r_normalized*r_normalized)
 
         ref_params = np.array([2.39245010e+02, 1.29000000e+02, 1.96842924e-01,
                                2.76755005e+02, 1.29000000e+02, 1.96842998e-01,
