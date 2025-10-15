@@ -28,9 +28,16 @@
         "ROS_DOMAIN_ID": "42"
     },
 "runArgs": [
+    "--gpus", "all",
     "--net=host",
     "--pid=host",
-    "--ipc=host"
+    "--ipc=host",
+    "--cpuset-cpus=0-3",
+    "-e", "NVIDIA_VISIBLE_DEVICES=all",
+    "-e", "NVIDIA_DRIVER_CAPABILITIES=all",
+    "-e", "DISPLAY=${env:DISPLAY}",
+    "--device=/dev/input/js0"
+
 ]
 ,
     "mounts": [
