@@ -159,7 +159,7 @@ class ZeroCmdFromFeatures:
         J = np.array([[j11, j12, j13, j14]])
         return J
 
-    def compute_theta(self, p1, p2):
+    def compute_theta(self, p1, p2, z1, z2):
         # Get pixels values 
         u1 = p1[0, 0]
         v1 = p1[1, 0]
@@ -179,16 +179,18 @@ class ZeroCmdFromFeatures:
         # Compute theta
         du = u2_c - u1_c
         dv = v2_c - v1_c
+        dz = (z2 - z1)
 
         # Angle of the feature
         theta = np.arctan2(dv, du)
+        phi = np.arctan2(dz, du) 
         
         um = (u1_c + u2_c)/2
         vm = (v1_c + v2_c)/2
 
         r = um*np.sin(theta) + vm*np.cos(theta)
 
-        return theta, r
+        return theta, r, phi
 
     def control_theta_z(self, p1, z1, p2, z2, gain, desired_theta, desired_z):
         # Get pixels values 
@@ -331,13 +333,15 @@ class ZeroCmdFromFeatures:
         z2 = msg.data[9]
         z2 = 10*z2
 
+        z_average = (z1 + z2)/2
+
         # Compute theta
-        theta, r = self.compute_theta(p2, p1)
+        theta, r, phi = self.compute_theta(p2, p1, z2, z1)
         
         # Features for nmpc 
-        X = np.array([p2[0, 0], p2[1, 0], z2, p1[0, 0], p1[1, 0], z1, theta, r]) 
+        X = np.array([p2[0, 0], p2[1, 0], z2, p1[0, 0], p1[1, 0], z1, theta, r, phi]) 
         print("results")
-        print(X[2])
+        print(X)
 
         if self.flag == 0:
             self.ocp = solverCamera(self.N_prediction, self.sample_time, self.t_N, X)
@@ -356,12 +360,12 @@ class ZeroCmdFromFeatures:
         self.acados_ocp_solver.set(0, "ubx", X) 
         
         
-        DESIRED_Z_M = 0.197
+        DESIRED_Z_M = 0.195
 
         desired_camera = np.array([
             0.0, 0.0, DESIRED_Z_M,   # u2*, v2*, z2*
             0.0, 0.0, DESIRED_Z_M,   # u1*, v1*, z1*
-            0.0, 0.0                 # theta*, r*
+            0.0, 0.0, 0.0                 # theta*, r*, phi*
         ])
         
         for j in range(self.N_prediction):
@@ -388,9 +392,6 @@ class ZeroCmdFromFeatures:
         # Check Solution since there can be possible errors 
         self.acados_ocp_solver.solve()
         aux_control = self.acados_ocp_solver.get(0, "u")
-        prediction_1 = self.acados_ocp_solver.get(1, "x")
-        prediction_2 = self.acados_ocp_solver.get(2, "x")
-        print(prediction_1[2], prediction_2[2])
         #aux_control = np.zeros((7,))
 
         # Here We do the control (We are not controlling pitch )

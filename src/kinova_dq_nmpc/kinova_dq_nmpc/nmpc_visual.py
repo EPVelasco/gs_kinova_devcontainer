@@ -288,6 +288,24 @@ def ImageJacobianr(p1, p2):
     j14 = ((u1 - u2)*(h*v1 - h*v2 + 2*u1*u2 - u1*w + u2*w + 2*v1*v2 - 2*u2**2 - 2*v1**2))/(2*((u1 - u2)**2 + (v1 - v2)**2)**(3/2))
     J =  ca.hcat([j11, j12, j13, j14])
     return J
+
+def ImageJacobianphi(p1, p2, z1, z2):
+    # Get pixels values 
+    u1 = p1[0, 0]
+    v1 = p1[1, 0]
+
+    # Get pixels values 
+    u2 = p2[0, 0]
+    v2 = p2[1, 0]
+
+    j11 = (z1 - z2)/((u1 - u2)**2 + (z1 - z2)**2)
+    j12 = 0.0
+    j13 = -(z1 - z2)/((u1 - u2)**2 + (z1 - z2)**2)
+    j14 = 0.0
+    j15 = -(u1 - u2)/((u1 - u2)**2 + (z1 - z2)**2)
+    j16 = (u1 - u2)/((u1 - u2)**2 + (z1 - z2)**2)
+    J =  ca.hcat([j11, j12, j13, j14, j15, j16])
+    return J
     
 def CameraModel()-> AcadosModel:
     # Dynamics of the quadrotor based on unit quaternions
@@ -322,9 +340,10 @@ def CameraModel()-> AcadosModel:
 
     theta = ca.MX.sym('theta')
     r = ca.MX.sym('r')
+    phi = ca.MX.sym('phi') 
 
 
-    X = ca.vertcat(u_pixel_1, v_pixel_1, z_camera_frame_1, u_pixel_2, v_pixel_2, z_camera_frame_2, theta, r)
+    X = ca.vertcat(u_pixel_1, v_pixel_1, z_camera_frame_1, u_pixel_2, v_pixel_2, z_camera_frame_2, theta, r, phi)
 
     u_pixel_dot_1 = ca.MX.sym('u_pixel_dot_1') 
     v_pixel_dot_1 = ca.MX.sym('v_pixel_dot_1') 
@@ -336,8 +355,9 @@ def CameraModel()-> AcadosModel:
 
     theta_dot = ca.MX.sym('theta_dot')
     r_dot = ca.MX.sym('r_dot')
+    phi_dot = ca.MX.sym('phi_dot')
 
-    X_dot = ca.vertcat(u_pixel_dot_1, v_pixel_dot_1, z_camera_frame_dot_1, u_pixel_dot_2, v_pixel_dot_2, z_camera_frame_dot_2, theta_dot, r_dot)
+    X_dot = ca.vertcat(u_pixel_dot_1, v_pixel_dot_1, z_camera_frame_dot_1, u_pixel_dot_2, v_pixel_dot_2, z_camera_frame_dot_2, theta_dot, r_dot, phi_dot)
 
     # --- Camera spatial velocity (vx, vy, vz, wx, wy, wz) ---
     vx_c = ca.MX.sym('vx_c')
@@ -362,12 +382,14 @@ def CameraModel()-> AcadosModel:
     # Compute jacobian Theta
     Jtheta = ImageJacobianTheta(uv_pixel_1, uv_pixel_2)
     Jr = ImageJacobianr(uv_pixel_1, uv_pixel_2)
+    Jphi = ImageJacobianphi(uv_pixel_1, uv_pixel_2, z_camera_frame_1, z_camera_frame_2)
 
     theta_feature_dot = Jtheta@Juv@u
     r_feature_dot = Jr@Juv@u
+    phi_features_dot = Jphi@u
 
     # Explicit and implicit functions
-    f_expl = ca.vertcat(features_1_dot, features_2_dot, theta_feature_dot, r_feature_dot)
+    f_expl = ca.vertcat(features_1_dot, features_2_dot, theta_feature_dot, r_feature_dot, phi_features_dot)
     f_impl = X_dot - f_expl
     p = ca.MX.sym('p', X.shape[0] + u.shape[0], 1)
 
@@ -527,12 +549,13 @@ def solverCamera(N_prediction, ts, t_N, x0):
         u = ocp.model.u
         p = ocp.model.p
 
+        # Maximum velocities of the end effector
         vx_max = 1.0
         vy_max = 0.1
-        vz_max = 0.01
+        vz_max = 0.05
 
         wx_max = 0.0
-        wy_max = 0.1
+        wy_max = 1.0
         wz_max = 1.0
 
         R = MX.zeros(6, 6)
@@ -542,27 +565,41 @@ def solverCamera(N_prediction, ts, t_N, x0):
         R[4, 4] = 20/wy_max
         R[5, 5] = 20/wz_max
 
-        features_1 = x[0:3]
-        features_2 = x[3:6]
+        # Extracts the z values of the system
+        z1 = x[2]*10 # Just multiplying to have a better conditiones problem the values are quite small
+        z2 = x[5]*10 # Just multiplying to have a better conditiones problem the values are quite small
+        z_average = (z1 + z2) / 2
 
-        z1 = x[3]
-        z2 = x[5]
-
-        zd = 0.19
-        z = ca.vertcat(z1, z2)
-        zd = ca.vertcat(zd, zd)
-        ze = zd-z
+        zd = 0.192*10
+        ze = zd-z_average
 
         theta = x[6]
         r = x[7]
+        phi = 1000*x[8]    ## Scaling factor this angle is too small
         r_normalized = r/variables.v_max
 
-        ocp.model.cost_expr_ext_cost = 15*(theta*theta) + u.T@R@u + 0.1*(r_normalized*r_normalized) + 0.000001*(ze.T@ze)
-        ocp.model.cost_expr_ext_cost_e =  15*(theta*theta) + 0.1*(r_normalized*r_normalized) + 0.000001*(ze.T@ze)
+        # Velocity x  ---------------------------------------- Verify this mapping this is only for simulation purposes 
+        xi = np.array([x[6], x[8]]) 
+        velocity_x = (0.001)/(1 + xi.T@xi)
+
+        # Desired Velocities
+        Vd = MX.zeros(6, 1)
+        Vd[0, 0] = velocity_x
+        Vd[1, 0] = 0.0
+        Vd[2, 0] = 0.0
+        Vd[3, 0] = 0.0
+        Vd[4, 0] = 0.0
+        Vd[5, 0] = 0.0
+
+        velocity_error = Vd - u
+
+
+        ocp.model.cost_expr_ext_cost = 15*(theta*theta) + velocity_error.T@R@velocity_error + 0.1*(r_normalized*r_normalized) + 1*(ze*ze) + 50*(phi*phi)
+        ocp.model.cost_expr_ext_cost_e =  15*(theta*theta) + 0.1*(r_normalized*r_normalized) + 1*(ze*ze)+ 50*(phi*phi)
 
         ref_params = np.array([2.39245010e+02, 1.29000000e+02, 1.96842924e-01,
                                2.76755005e+02, 1.29000000e+02, 1.96842998e-01,
-                               0, 9.00000000e+00,
+                               0, 9.00000000e+00, 0,
                                0, 0, 0, 0, 0, 0
                                      ])  
 
@@ -570,25 +607,26 @@ def solverCamera(N_prediction, ts, t_N, x0):
 
         ocp.constraints.constr_type = 'BGH'
 
-        # Constrains in z 0.182 0.197
+        # Constrains in z 0.182 0.197 
+        # Verify this values on the real robot
         z_min  = 0.1815
         z_max = 0.197
 
         ubx = np.array([z_max, z_max])
         lbx = np.array([z_min, z_min])
 
-        # Contrains in the nmpc
+        # Contrains in the states of the nmpc
         ocp.constraints.ubx = ubx
         ocp.constraints.lbx = lbx
         ocp.constraints.ubx_0 = ubx
         ocp.constraints.lbx_0 = lbx
         ocp.constraints.ubx_e = ubx
         ocp.constraints.lbx_e = lbx
-
         ocp.constraints.idxbx = np.array([2, 5])
         ocp.constraints.idxbx_0 = np.array([2, 5])
         ocp.constraints.idxbx_e = np.array([2, 5])
 
+        ## Contraints in the control actions
         ocp.constraints.lbu = np.array([-vx_max, -vy_max, -vz_max, -wx_max, -wy_max, -wz_max])
         ocp.constraints.ubu = np.array([vx_max, vy_max, vz_max, wx_max, wy_max, wz_max])
         ocp.constraints.idxbu = np.array([0, 1, 2, 3, 4, 5])
