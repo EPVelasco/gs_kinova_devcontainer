@@ -15,7 +15,7 @@ RUN groupadd --gid $USER_GID $USERNAME \
 
 ENV SHELL=/bin/bash
 ENV NVIDIA_VISIBLE_DEVICES=${NVIDIA_VISIBLE_DEVICES:-all}
-ENV NVIDIA_DRIVER_CAPABILITIES=${NVIDIA_DRIVER_CAPABILITIES:+$NVIDIA_DRIVER_CAPABILITIES,}graphics
+ENV NVIDIA_DRIVER_CAPABILITIES=${NVIDIA_DRIVER_CAPABILITIES:+$NVIDIA_DRIVER_CAPABILITIES,}graphics,utility,compute
 ENV QT_X11_NO_MITSHM=1
 ENV EDITOR=nano
 ENV XDG_RUNTIME_DIR=/tmp
@@ -25,7 +25,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get upgrade -y && \
     apt-get install -y --no-install-recommends \
       curl wget ca-certificates gnupg2 bash-completion build-essential apt-utils \
-      python3-pip \
+      python3 python3-pip python3-tk python3-distutils python-is-python3 \
     && rm -rf /var/lib/apt/lists/*
 
 # Install ROS meta package (pinned) and common ROS tools
@@ -46,7 +46,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Extra graphics / OpenGL bits
 RUN apt-get update && apt-get install -y --no-install-recommends \
       libosmesa6-dev libgl1-mesa-dev libgl1-mesa-glx libglfw3 libglfw3-dev libglew-dev \
-      patchelf mesa-utils \
+      libglu1-mesa mesa-utils \
+      # Qt/X11 helpers often needed by gzclient
+      libxkbcommon-x11-0 libxcb-xinerama0 libqt5svg5 libqt5x11extras5 \
     && rm -rf /var/lib/apt/lists/*
 
 # Reactivate ROS apt key (focal)
@@ -57,11 +59,13 @@ RUN sed -i '/packages.ros.org/s/^/#/' /etc/apt/sources.list /etc/apt/sources.lis
     echo "deb [signed-by=/usr/share/keyrings/ros1-latest-archive-keyring.gpg] http://packages.ros.org/ros/ubuntu focal main" > /etc/apt/sources.list.d/ros1-latest.list
 
 # Python runtimes & scientific stack you requested
-RUN apt-get update && apt-get install -y --no-install-recommends \
-      python3.9 python3-pip python-is-python3 python3-tk \
-    && rm -rf /var/lib/apt/lists/*
-
-RUN pip install --no-cache-dir scipy opencv-python opencv-contrib-python pygame
+# NOTE: Use python3 -m pip and pin versions for reproducibility
+RUN python3 -m pip install --no-cache-dir \
+      numpy==1.23.5 \
+      scipy==1.10.1 \
+      opencv-python==4.8.1.78 \
+      opencv-contrib-python==4.8.1.78 \
+      pygame==2.5.2
 
 # Dev helpers (ripgrep, fd, unzip, xclip) installed as root
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -113,16 +117,19 @@ RUN mkdir -p "$HOME/.local/bin" && \
 
 #git checkout 37e17d31890ab54e5a855f1fe787fbf2f5d43bdb && \
 # --- Build Acados ---
+# NOTE: Pin acados to the exact commit (uncommented from your comment above)
 RUN git clone https://github.com/acados/acados.git && \
     cd acados && \
+    git checkout 37e17d31890ab54e5a855f1fe787fbf2f5d43bdb && \
     git submodule update --recursive --init && \
     mkdir -p build && cd build && \
     cmake -DACADOS_WITH_DAQP=ON -DACADOS_INSTALL_DIR="${HOME}/acados" .. && \
     make install -j"$(nproc)" && \
-    pip install --no-cache-dir -e "${HOME}/acados/interfaces/acados_template"
+    python3 -m pip install --no-cache-dir -e "${HOME}/acados/interfaces/acados_template"
 
 # --- Python tools ---
-RUN pip install --no-cache-dir pyyaml pynput casadi osqp
+# NOTE: Pin CasADi to 3.7.1 (matches the machine that works)
+RUN python3 -m pip install --no-cache-dir pyyaml==6.0.1 pynput==1.7.6 osqp==0.6.5 casadi==3.7.1
 
 # --- Build tera_renderer ---
 RUN git clone https://github.com/acados/tera_renderer && \
@@ -142,8 +149,12 @@ RUN echo "TERM=xterm-256color" >> ~/.bashrc && \
     echo "source /opt/ros/noetic/setup.bash" >> ~/.bashrc && \
     echo 'export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${HOME}/acados/lib' >> ~/.bashrc && \
     echo 'export ACADOS_SOURCE_DIR=${HOME}/acados' >> ~/.bashrc && \
+    echo 'export PYTHONPATH=${HOME}/acados/interfaces/acados_template:$PYTHONPATH' >> ~/.bashrc && \
     echo 'alias gb="vim ~/.bashrc"'    >> ~/.bashrc && \
-    echo 'alias gi="source ~/.bashrc"' >> ~/.bashrc
+    echo 'alias gi="source ~/.bashrc"' >> ~/.bashrc && \
+    # Helpful in some X/Qt setups inside containers (prevents aborts in gzclient)
+    echo 'export QT_XCB_GL_INTEGRATION=none' >> ~/.bashrc && \
+    echo 'export MESA_GL_VERSION_OVERRIDE=3.3' >> ~/.bashrc
 
 # disable Rviz warning
 ENV DISABLE_ROS1_EOL_WARNINGS=1
