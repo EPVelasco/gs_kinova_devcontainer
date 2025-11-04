@@ -587,7 +587,7 @@ def solverCamera(N_prediction, ts, t_N, x0):
 
         # Desired Velocities
         Vd = MX.zeros(6, 1)
-        Vd[0, 0] = 0.0*velocity_x
+        Vd[0, 0] = velocity_x
         Vd[1, 0] = 0.0
         Vd[2, 0] = 0.0
         Vd[3, 0] = 0.0
