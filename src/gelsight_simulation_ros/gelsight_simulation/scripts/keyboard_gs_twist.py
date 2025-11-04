@@ -46,6 +46,9 @@ class KeyboardToCmdVel:
         self.plus_next_time = 0.0
         self.minus_next_time = 0.0
 
+        # --- NEW: Publishing enable/disable flag ---
+        self.publish_enabled = True
+
     def now(self):
         """Current time in seconds from pygame (monotonic)."""
         return pygame.time.get_ticks() / 1000.0
@@ -61,7 +64,7 @@ class KeyboardToCmdVel:
             self.max_w = self.clamp(self.max_w + sign * self.step_w, self.w_min, self.w_max)
 
     def handle_key_events(self, event):
-        """Process events: quit, ESC, TAB, and debounced +/- press & release."""
+        """Process events: quit, ESC, TAB, +/- and P press & release."""
         if event.type == pygame.QUIT:
             rospy.signal_shutdown("Window closed")
             return
@@ -71,6 +74,11 @@ class KeyboardToCmdVel:
                 return
             if event.key == pygame.K_TAB:
                 self.adjust_target = 'angular' if self.adjust_target == 'linear' else 'linear'
+                return
+
+            # --- NEW: toggle publishing with P ---
+            if event.key == pygame.K_p:
+                self.publish_enabled = not self.publish_enabled
                 return
 
             # Detect + press (main row or keypad)
@@ -114,6 +122,8 @@ class KeyboardToCmdVel:
         v_mm = self.max_v * 1000.0
         w = self.max_w
         tgt = "LINEAR (m/s)" if self.adjust_target == 'linear' else "ANGULAR (rad/s)"
+        status = "ENABLED" if self.publish_enabled else "DISABLED"
+        status_hint = "(press P to toggle)"
 
         # Convert published twist (m/s) to mm/s for display lines only
         linx_mm = twist.linear.x * 1000.0
@@ -124,6 +134,7 @@ class KeyboardToCmdVel:
 
         lines = [
             "CLICK THIS WINDOW TO CAPTURE KEYBOARD INPUT | ESC: exit",
+            f"PUBLISHING: {status} {status_hint}",
             "",
             f"CURRENT SCALES ->  max_v: {v_mm:.3f} mm/s   |   max_w: {w:.3f} rad/s",
             f"ADJUST WITH +/- ->  Current target: {tgt}   (TAB to toggle) {hold_info}",
@@ -145,12 +156,21 @@ class KeyboardToCmdVel:
     def draw_text_block(self, lines):
         """Draws the instruction and status text on screen."""
         self.screen.fill((0, 0, 0))
-        y = 24
+        # --- Red banner if publishing disabled ---
+        if not self.publish_enabled:
+            pygame.draw.rect(self.screen, (120, 0, 0), pygame.Rect(0, 0, 800, 24))
+            banner = self.small.render("PUBLISHING DISABLED (press P to enable)", True, (255, 255, 255))
+            self.screen.blit(banner, (20, 4))
+            y = 36
+        else:
+            y = 24
+
         for line in lines:
             surf = self.font.render(line, True, (255, 255, 255))
             rect = surf.get_rect(topleft=(20, y))
             self.screen.blit(surf, rect)
             y += 26
+
         footer = self.small.render(
             "Tip: Hold motion keys. +/- uses debounced repeat (delay then steady rate).",
             True, (180, 180, 180)
@@ -187,14 +207,16 @@ class KeyboardToCmdVel:
             if keys[pygame.K_z]:     twist.angular.y = self.max_w
             if keys[pygame.K_c]:     twist.angular.y = -self.max_w
 
-            # 4) Publish and draw UI
-            self.pub.publish(twist)
+            # 4) Publish only if enabled
+            if self.publish_enabled:
+                self.pub.publish(twist)
             self.last_twist = twist
 
+            # 5) Draw UI
             lines = self.build_text_lines(self.last_twist)
             self.draw_text_block(lines)
 
-            # 5) 20 Hz loop
+            # 6) 20 Hz loop
             self.clock.tick(20)
 
 if __name__ == "__main__":

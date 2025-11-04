@@ -583,11 +583,11 @@ def solverCamera(N_prediction, ts, t_N, x0):
 
         # Velocity x  ---------------------------------------- Verify this mapping this is only for simulation purposes 
         xi = np.array([10*x[6], 100*x[8], r_normalized]) 
-        velocity_x = (0.001)/(1 + xi.T@xi)
+        velocity_x = (0.005)/(1 + xi.T@xi)
 
         # Desired Velocities
         Vd = MX.zeros(6, 1)
-        Vd[0, 0] = velocity_x
+        Vd[0, 0] = 0.0*velocity_x
         Vd[1, 0] = 0.0
         Vd[2, 0] = 0.0
         Vd[3, 0] = 0.0
@@ -599,8 +599,8 @@ def solverCamera(N_prediction, ts, t_N, x0):
 
         # ocp.model.cost_expr_ext_cost = 50*(theta*theta) + velocity_error.T@R@velocity_error + 0.1*(r_normalized*r_normalized) + 1*(ze*ze) + 50*(phi*phi)
         # ocp.model.cost_expr_ext_cost_e =  50*(theta*theta) + 0.1*(r_normalized*r_normalized) + 1*(ze*ze)+ 50*(phi*phi)
-        ocp.model.cost_expr_ext_cost = 50*(theta*theta) + velocity_error.T@R@velocity_error + 500*20*(ze1*ze1) + 500*20*(ze2*ze2) + 0.1*(r_normalized*r_normalized)
-        ocp.model.cost_expr_ext_cost_e =  50*(theta*theta) + 500*20*(ze1*ze1) + 500*20*(ze2*ze2) + 0.1*(r_normalized*r_normalized)
+        ocp.model.cost_expr_ext_cost = 50*(theta*theta) + velocity_error.T@R@velocity_error + 20*(ze1*ze1) + 20*(ze2*ze2) + 0.1*(r_normalized*r_normalized)
+        ocp.model.cost_expr_ext_cost_e =  50*(theta*theta) + 20*(ze1*ze1) + 20*(ze2*ze2) + 0.1*(r_normalized*r_normalized)
 
         ref_params = np.array([2.39245010e+02, 1.29000000e+02, 1.96842924e-01,
                                2.76755005e+02, 1.29000000e+02, 1.96842998e-01,
