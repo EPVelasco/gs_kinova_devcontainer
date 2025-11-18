@@ -7,3 +7,4 @@ __pycache__/
 ./devcontainer
 /c_generated_code
 acados_ocp_kinova.json
+rosbags/

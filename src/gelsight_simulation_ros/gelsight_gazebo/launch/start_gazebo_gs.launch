@@ -44,7 +44,9 @@
   <!-- ============ SPAWN SENSOR IN GAZEBO ============ -->
   <arg name="pi" default="3.14159256535898" />
   <node name="spawn_gelsight" pkg="gazebo_ros" type="spawn_model" output="screen"
-      args="-param robot_description -urdf -model gelsight_sensor -x 0.486394 -y 0.807081 -z 0.057752 -R -2.3 -P 0.0 -Y -1.57079632679" />
+      args="-param robot_description -urdf -model gelsight_sensor -x 0.488816 -y 0.790451 -z 0.059620 -R -2.339618 -P 0.289903 -Y -1.840596" />
+      <!-- args="-param robot_description -urdf -model gelsight_sensor -x 0.486394 -y 0.807081 -z 0.057752 -R -2.3 -P 0.0 -Y -1.57079632679" /> -->
+
   <!-- Run gelsight_simulation -->
     <include file="$(find gelsight_simulation)/launch/gs_gel_link.launch" if="$(arg gs_sim)"/>
 
