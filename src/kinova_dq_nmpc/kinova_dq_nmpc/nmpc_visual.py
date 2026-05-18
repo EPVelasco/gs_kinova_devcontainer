@@ -582,7 +582,7 @@ def solverCamera(N_prediction, ts, t_N, x0):
         r_normalized = r/variables.v_max
 
         # Velocity x  ---------------------------------------- Verify this mapping this is only for simulation purposes 
-        xi = np.array([10*x[6], 100*x[8], r_normalized]) 
+        xi = np.array([x[6], x[8], r_normalized]) 
         velocity_x = (0.005)/(1 + xi.T@xi)
 
         # Desired Velocities
@@ -596,12 +596,19 @@ def solverCamera(N_prediction, ts, t_N, x0):
 
         velocity_error = Vd - u
 
-
+        Z_GAIN = 100
+        THETA_GAIN = 10.5
+        phi_GAIN = 2.0
+        r_gain = 0.5
+        # Z_GAIN = 80
+        # THETA_GAIN = 20.5
+        # phi_GAIN = 0.25
+        # r_gain = 0.5
+        
         # ocp.model.cost_expr_ext_cost = 50*(theta*theta) + velocity_error.T@R@velocity_error + 0.1*(r_normalized*r_normalized) + 1*(ze*ze) + 50*(phi*phi)
         # ocp.model.cost_expr_ext_cost_e =  50*(theta*theta) + 0.1*(r_normalized*r_normalized) + 1*(ze*ze)+ 50*(phi*phi)
-        ocp.model.cost_expr_ext_cost = 50*(theta*theta) + velocity_error.T@R@velocity_error + 20*(ze1*ze1) + 20*(ze2*ze2) + 0.1*(r_normalized*r_normalized)
-        ocp.model.cost_expr_ext_cost_e =  50*(theta*theta) + 20*(ze1*ze1) + 20*(ze2*ze2) + 0.1*(r_normalized*r_normalized)
-
+        ocp.model.cost_expr_ext_cost = THETA_GAIN*(theta*theta) + velocity_error.T@R@velocity_error + Z_GAIN*(ze1*ze1) + Z_GAIN*(ze2*ze2) + r_gain*(r_normalized*r_normalized)+ phi_GAIN*(phi*phi)
+        ocp.model.cost_expr_ext_cost_e =  THETA_GAIN*(theta*theta) + Z_GAIN*(ze1*ze1) + Z_GAIN*(ze2*ze2) + r_gain*(r_normalized*r_normalized)+ phi_GAIN*(phi*phi)
         ref_params = np.array([2.39245010e+02, 1.29000000e+02, 1.96842924e-01,
                                2.76755005e+02, 1.29000000e+02, 1.96842998e-01,
                                0, 9.00000000e+00, 0,
@@ -612,10 +619,10 @@ def solverCamera(N_prediction, ts, t_N, x0):
 
         ocp.constraints.constr_type = 'BGH'
 
-        # Constrains in z 0.182 0.197 
+        # Constrains in z 0.182 0.200 
         # Verify this values on the real robot
         z_min  = 0.1815
-        z_max = 0.197
+        z_max = 0.200
 
         ubx = np.array([z_max, z_max])
         lbx = np.array([z_min, z_min])

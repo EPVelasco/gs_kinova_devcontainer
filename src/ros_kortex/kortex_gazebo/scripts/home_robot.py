@@ -17,6 +17,7 @@ class ExampleInitializeGazeboRobot(object):
 
     try:
       self.robot_name = rospy.get_param('~robot_name')
+      self.do_home = rospy.get_param('~do_home', True)
       self.action_topic_sub = rospy.Subscriber("/" + self.robot_name + "/action_topic", ActionNotification, self.cb_action_topic)
 
       # Wait for the driver to be initialised
@@ -93,7 +94,12 @@ def main():
     example = ExampleInitializeGazeboRobot()
     success = example.is_init_success
     if success:
-      success &= example.home_the_robot()
+      if example.do_home:
+        rospy.loginfo("do_home=True -> homing robot")
+        success &= example.home_the_robot()
+      else:
+        rospy.loginfo("do_home=False -> skipping homing")
+
 
   except Exception as e:
     print (e)

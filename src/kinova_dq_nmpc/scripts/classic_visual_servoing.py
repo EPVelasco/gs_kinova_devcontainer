@@ -7,24 +7,24 @@ import numpy as np
 class ClassicVisualServoingNS:
     def __init__(self):
         # Publisher para cmd_vel
-        self.cmd_pub = rospy.Publisher('/cmd_vel', Twist, queue_size=10)
+        self.cmd_pub = rospy.Publisher('/ee_cartesian_vel', Twist, queue_size=10)
 
         # Subscriber de las features
         rospy.Subscriber('/gs_feature_coords', Float32MultiArray, self.features_callback)
 
-        rospy.loginfo("Classic Visual Servoing (IBVS) + null-space (z y phi)")
+        rospy.loginfo("Classic Visual Servoing (IBVS) + null-space (z y phi) con watchdog 0.05 s")
 
         # Parámetros de cámara
         self.f = 100.0       # distancia focal (en píxeles)
         self.h = 240.0       # alto de imagen
         self.w = 320.0       # ancho de imagen
-
+        self.cont = 0
         # Centro de imagen
         self.v_max = self.h / 2.0
         self.u_max = self.w / 2.0
 
         # Ganancias del control
-        self.gain_r = 0.05
+        self.gain_r = 0.005
         self.gain_theta = 0.5
 
         # Ganancias espacio nulo phi/x y z
@@ -35,6 +35,16 @@ class ClassicVisualServoingNS:
         self.desired_r = 0.0
         self.desired_theta = 0.0
         self.desired_phi = 0.0
+
+        # ==== WATCHDOG ====
+        self.timeout = 0.001  # 50 ms
+        self.last_msg_time = None
+
+        # Timer que comprueba periódicamente si se ha superado el timeout
+        # self.watchdog_timer = rospy.Timer(
+        #     rospy.Duration(0),  # comprueba cada 10 ms
+        #     self.watchdog_callback
+        # )
 
     # Jacobiana de un punto (3x6)
     def jacobian_point(self, p, z):
@@ -202,7 +212,7 @@ class ClassicVisualServoingNS:
                          [0.0],
                          [0.0]])
 
-        K2_z = np.diag([0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
+        K2_z = np.diag([0.0, 0.0, 0.001, 0.0, 0.0, 0.0])
         v_z_ns = N_s @ (K2_z @ ns_z)
 
         # ===== ESPACIO NULO 2: v_x y phi =====
@@ -217,7 +227,7 @@ class ClassicVisualServoingNS:
                             [error_phi],  # w_y
                             [0.0]])       # w_z
 
-        K2_xphi = np.diag([1.0, 0.0, 0.0, 1.0, 100.0, 0.0])
+        K2_xphi = np.diag([0.01, 0.0, 0.0, 0.01, 0.01, 0.0])
         v_xphi_ns = N_s @ (K2_xphi @ ns_xphi)
 
         # ===== VELOCIDAD FINAL =====
@@ -226,6 +236,24 @@ class ClassicVisualServoingNS:
         return v_cam, r, theta, phi, e_r, e_theta_feat, error_phi, z_m
 
     def features_callback(self, msg):
+        # Actualizar instante de último mensaje recibido
+        
+        
+        self.last_msg_time = rospy.get_time()
+        while(self.cont<200):
+            self.cont = 1+self.cont
+            twist = Twist()
+            twist.linear.x  = 0
+            twist.linear.y  = 0
+            twist.linear.z  = 0
+            twist.angular.x = 0
+            twist.angular.y = 0
+            twist.angular.z = 0
+
+            self.cmd_pub.publish(twist)
+            
+         
+
         # p1: punto derecha (según tu convención actual)
         p1 = np.array([msg.data[4], msg.data[5]]).reshape(2, 1)
         z1 = msg.data[8] * 10.0
@@ -234,6 +262,17 @@ class ClassicVisualServoingNS:
         p2 = np.array([msg.data[6], msg.data[7]]).reshape(2, 1)
         z2 = msg.data[9] * 10.0
 
+        # === Chequeo básico de pérdida de características: NaN/inf ===
+        arr = np.array([p1[0, 0], p1[1, 0], z1,
+                        p2[0, 0], p2[1, 0], z2], dtype=float)
+
+        if np.any(~np.isfinite(arr)):
+            twist_zero = Twist()
+            self.cmd_pub.publish(twist_zero)
+            rospy.logwarn_throttle(1.0, "Features no válidas (NaN/inf) — enviando velocidades cero")
+            return
+
+        # Control clásico + espacio nulo
         v_cam, r, theta, phi, e_r, e_theta_feat, e_phi, z_m = \
             self.classic_control_with_nullspace(p1, z1, p2, z2)
 
@@ -244,13 +283,12 @@ class ClassicVisualServoingNS:
             return float(np.clip(val, -lim, lim))
 
         twist = Twist()
-        twist.linear.x  = sat(v_cam[0, 0], MAX_LIN)
-        twist.linear.y  = sat(v_cam[1, 0], MAX_LIN)
-        twist.linear.z  = sat(v_cam[2, 0], MAX_LIN)
-
-        twist.angular.x = sat(v_cam[3, 0], MAX_ANG)
-        twist.angular.y = sat(v_cam[4, 0], MAX_ANG)
-        twist.angular.z = sat(v_cam[5, 0], MAX_ANG)
+        twist.linear.x  = 0.1*v_cam[0, 0]
+        twist.linear.y  = 0.1*v_cam[1, 0]
+        twist.linear.z  = 0.1*v_cam[2, 0]
+        twist.angular.x = 0.1*v_cam[3, 0]
+        twist.angular.y = 0.1*v_cam[4, 0]
+        twist.angular.z = 0.1*v_cam[5, 0]
 
         self.cmd_pub.publish(twist)
 
@@ -261,11 +299,26 @@ class ClassicVisualServoingNS:
             (r, theta, phi, z_m, e_r, e_theta_feat, e_phi)
         )
 
+    # def watchdog_callback(self, event):
+    #     """
+    #     Si no se reciben mensajes en más de 'timeout' segundos,
+    #     publicar velocidades cero.
+    #     """
+    #     current_time = rospy.get_time()
+
+    #     # Si nunca ha llegado un mensaje, o ya ha pasado el timeout:
+    #     if self.last_msg_time is None or (current_time - self.last_msg_time) > self.timeout:
+    #         twist_zero = Twist()
+    #         self.cmd_pub.publish(twist_zero)
+    #         rospy.logwarn_throttle(
+    #             1.0,
+    #             "Watchdog: sin features durante > %.3f s — enviando velocidades cero" % self.timeout
+    #         )
+
 if __name__ == '__main__':
     rospy.init_node('visual_servoing_classic_ns')
     ClassicVisualServoingNS()
     rospy.spin()
-
 
 
 # Mismas ganancias que el desacoplado:

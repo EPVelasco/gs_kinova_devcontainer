@@ -10,4 +10,3 @@ rostopic echo /my_gen3/joint_states
 ### TODO
 ## Map between visual servoing and dq controller
 ## Try to minimze the accions of the last joints. Looks weird this behavior
-

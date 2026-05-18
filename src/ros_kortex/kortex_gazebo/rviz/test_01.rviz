@@ -6,7 +6,7 @@ Panels:
       Expanded:
         - /pc_gel_deformation1/Autocompute Value Bounds1
       Splitter Ratio: 0.5
-    Tree Height: 164
+    Tree Height: 443
   - Class: rviz/Selection
     Name: Selection
   - Class: rviz/Tool Properties
@@ -52,7 +52,7 @@ Visualization Manager:
       Value: true
     - Acceleration_Scaling_Factor: 1
       Class: moveit_rviz_plugin/MotionPlanning
-      Enabled: true
+      Enabled: false
       JointsTab_Use_Radians: true
       Move Group Namespace: ""
       MoveIt_Allow_Approximate_IK: false
@@ -82,106 +82,6 @@ Visualization Manager:
           Expand Link Details: false
           Expand Tree: false
           Link Tree Style: Links in Alphabetic Order
-          base_link:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          bracelet_link:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          end_effector_link:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          forearm_link:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          gelsight_spectre_bottom:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          gelsight_spectre_left:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          gelsight_spectre_right:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          gelsight_spectre_top:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          gs_base_link:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          gs_camera_link:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          gs_camera_pcloud:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          gs_cap_link:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          gs_gel_link:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          gs_kinova_holder_link:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          half_arm_1_link:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          half_arm_2_link:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          shoulder_link:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          spherical_wrist_1_link:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          spherical_wrist_2_link:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          tool_frame:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          world:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
         Loop Animation: false
         Robot Alpha: 0.5
         Robot Color: 150; 50; 150
@@ -228,110 +128,10 @@ Visualization Manager:
           Expand Link Details: false
           Expand Tree: false
           Link Tree Style: Links in Alphabetic Order
-          base_link:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          bracelet_link:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          end_effector_link:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          forearm_link:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          gelsight_spectre_bottom:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          gelsight_spectre_left:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          gelsight_spectre_right:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          gelsight_spectre_top:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          gs_base_link:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          gs_camera_link:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          gs_camera_pcloud:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          gs_cap_link:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          gs_gel_link:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          gs_kinova_holder_link:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          half_arm_1_link:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          half_arm_2_link:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          shoulder_link:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          spherical_wrist_1_link:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          spherical_wrist_2_link:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          tool_frame:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          world:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
         Robot Alpha: 1
         Show Robot Collision: false
         Show Robot Visual: true
-      Value: true
+      Value: false
       Velocity_Scaling_Factor: 1
     - Alpha: 0.30000001192092896
       Class: rviz/Axes
@@ -534,7 +334,7 @@ Visualization Manager:
                         bracelet_link:
                           end_effector_link:
                             tool_frame:
-                              gs_kinova_holder_link:
+                              gs_camera_pcloud:
                                 gs_base_link:
                                   gelsight_spectre_bottom:
                                     {}
@@ -546,11 +346,11 @@ Visualization Manager:
                                     {}
                                   gs_camera_link:
                                     {}
-                                  gs_camera_pcloud:
-                                    {}
                                   gs_cap_link:
                                     {}
                                   gs_gel_link:
+                                    {}
+                                  gs_kinova_holder_link:
                                     {}
       Update Interval: 0
       Value: true
@@ -673,7 +473,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 1.175577998161316
+      Distance: 1.0615705251693726
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -681,29 +481,29 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 0.13690447807312012
-        Y: 0.16201074421405792
-        Z: 0.17485913634300232
+        X: 0.2729254364967346
+        Y: 0.12358908355236053
+        Z: 0.18240779638290405
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.18539823591709137
+      Pitch: 0.1153983473777771
       Target Frame: <Fixed Frame>
-      Yaw: 5.178610801696777
+      Yaw: 6.2586140632629395
     Saved: ~
 Window Geometry:
   Displays:
     collapsed: false
-  Height: 1013
+  Height: 1016
   Hide Left Dock: false
   Hide Right Dock: true
   MotionPlanning:
     collapsed: false
   MotionPlanning - Trajectory Slider:
     collapsed: false
-  QMainWindow State: 000000ff00000000fd0000000400000000000001ca00000259fc020000000bfb0000001200530065006c0065006300740069006f006e00000001e10000009b0000005c00fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb000000100044006900730070006c0061007900730100000144000000df000000c700fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261fb000000280020002d0020005400720061006a006500630074006f0072007900200053006c00690064006500720000000000ffffffff0000000000000000fb0000001c004d006f00740069006f006e0050006c0061006e006e0069006e00670100000229000001740000016900fffffffb00000044004d006f00740069006f006e0050006c0061006e006e0069006e00670020002d0020005400720061006a006500630074006f0072007900200053006c00690064006500720000000000ffffffff0000001600000016000000010000010f00000241fc0200000003fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000000a00560069006500770073000000015f00000241000000a000fffffffb0000001200530065006c0065006300740069006f006e010000025a000000b20000000000000000000000020000069000000103fc0100000005fb0000001e00670073005f00630061006d006500720061005f0063006f006c006f00720100000000000001ce000000b100fffffffb0000001e00670073005f00630061006d006500720061005f0064006500700074006801000001d4000001ae000000b700fffffffb0000002600670073005f0066006500610074007500720065005f006500780074007200610074006f00720100000388000001a5000000c200fffffffb0000002600670073005f00630061006d006500720061005f00730069006d0075006c006100740065006401000005330000015d000000cf00fffffffb0000000a00560069006500770073030000004e00000080000002e100000197000000030000069000000037fc0100000002fb0000000800540069006d00650100000000000006900000030700fffffffb0000000800540069006d00650100000000000004500000000000000000000004c00000025900000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  QMainWindow State: 000000ff00000000fd0000000400000000000001ca00000243fc020000000bfb0000001200530065006c0065006300740069006f006e00000001e10000009b0000005c00fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb000000100044006900730070006c006100790073000000015d00000243000000c700fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261fb000000280020002d0020005400720061006a006500630074006f0072007900200053006c00690064006500720000000000ffffffff0000000000000000fb0000001c004d006f00740069006f006e0050006c0061006e006e0069006e0067000000022b000001750000016900fffffffb00000044004d006f00740069006f006e0050006c0061006e006e0069006e00670020002d0020005400720061006a006500630074006f0072007900200053006c00690064006500720000000000ffffffff0000001600000016000000010000010f00000241fc0200000003fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000000a00560069006500770073000000015f00000241000000a000fffffffb0000001200530065006c0065006300740069006f006e010000025a000000b2000000000000000000000002000007380000011cfc0100000005fb0000001e00670073005f00630061006d006500720061005f0063006f006c006f00720100000000000001fc000000b100fffffffb0000001e00670073005f00630061006d006500720061005f006400650070007400680100000202000001db000000b700fffffffb0000002600670073005f0066006500610074007500720065005f006500780074007200610074006f007201000003e3000001ce000000c200fffffffb0000002600670073005f00630061006d006500720061005f00730069006d0075006c006100740065006401000005b700000181000000cf00fffffffb0000000a00560069006500770073030000004e00000080000002e100000197000000030000073800000037fc0100000002fb0000000800540069006d00650100000000000007380000030700fffffffb0000000800540069006d00650100000000000004500000000000000000000007380000024300000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
   Selection:
     collapsed: false
   Time:
@@ -712,9 +512,9 @@ Window Geometry:
     collapsed: false
   Views:
     collapsed: true
-  Width: 1680
-  X: 0
-  Y: 0
+  Width: 1848
+  X: 1752
+  Y: 27
   gs_camera_color:
     collapsed: false
   gs_camera_depth:

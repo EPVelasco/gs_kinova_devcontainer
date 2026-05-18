@@ -86,7 +86,7 @@ class ImageSubscriberPublisher:
                 rect = cv2.minAreaRect(cnt)
                 box = cv2.boxPoints(rect)
                 box = box.astype(np.intp)
-                cv2.drawContours(filtered, [box], 0, (0, 0, 255), 2)
+                #cv2.drawContours(filtered, [box], 0, (0, 0, 255), 2)
 
                 (x_center, y_center), (w_rect, h_rect), raw_angle = rect
 
@@ -148,6 +148,7 @@ class ImageSubscriberPublisher:
                 cv2.putText(filtered, "point 2", (5,220), cv2.FONT_HERSHEY_SIMPLEX, 0.4, (255, 0, 255), 1, cv2.LINE_AA)
                 
                 cv2.circle(filtered, (int(x_center), int(y_center)), 3, (0, 255, 0), -1)
+                cv2.line(filtered, (int(point1[0]),int(point1[1])),(int(point2[0]),int(point2[1])), (0, 255, 0), 1)
          
 
 

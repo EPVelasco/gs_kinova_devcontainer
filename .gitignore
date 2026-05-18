@@ -8,3 +8,4 @@ __pycache__/
 /c_generated_code
 acados_ocp_kinova.json
 rosbags/
+src/kinova_dq_nmpc/scripts/c_generated_code

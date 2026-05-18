@@ -1,174 +1,294 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
 import rospy
 import numpy as np
-import casadi as ca
+import tf
 
 from sensor_msgs.msg import JointState
 from geometry_msgs.msg import TwistStamped
 from kortex_driver.msg import Base_JointSpeeds, JointSpeed
 
-# --- kinova_dq_nmpc imports (tuyos) ---
-from kinova_dq_nmpc.forward_kinematics import (
-    forward_kinematics_casadi_link1, forward_kinematics_casadi_link2,
-    forward_kinematics_casadi_link3, forward_kinematics_casadi_link4,
-    forward_kinematics_casadi_link5, forward_kinematics_casadi_link6,
-    forward_kinematics_casadi_link7, forward_kinematics_casadi_link8,
-    forward_kinematics_casadi, jacobian_casadi, dualquat_from_pose_casadi
-)
-from kinova_dq_nmpc.ode_acados import (
-    dualquat_trans_casadi, dualquat_quat_casadi, dual_velocity_casadi,
-    velocities_from_twist_casadi, error_dual_aux_casadi, ln_dual_aux_casadi,
-    rotation_casadi
-)
+# Jacobiano geométrico 6x7 del Kinova Gen3
+from kinova_gen3.kinematics.jacobian import jacobian as kinova_jacobian
 
-# ======= Utilidades DQ / FK / Jacobiano =======
-get_trans = dualquat_trans_casadi()
-get_quat  = dualquat_quat_casadi()
-dual_twist = dual_velocity_casadi()              # mapea (wb, vi) -> dual twist
-velocity_from_twist = velocities_from_twist_casadi()
-forward_kinematics_f = forward_kinematics_casadi()
-jacobian = jacobian_casadi()
-dualquat_from_pose = dualquat_from_pose_casadi()
-error_dual = error_dual_aux_casadi()
-ln_dual = ln_dual_aux_casadi()
-rotation_i = rotation_casadi()                   # rota ω_b -> ω_i si lo necesitas
 
-# ======= Estado global =======
-joint_angles = np.zeros(7)
-_last_twist_msg = None
-_last_twist_time = None
+class DQTwistController(object):
+    def __init__(self):
+        rospy.init_node("dq_twist_controller", anonymous=True)
 
-# ======= Callbacks =======
-def joint_state_callback(msg: JointState):
-    global joint_angles
-    if len(msg.position) >= 7:
-        joint_angles = np.array(msg.position[:7])
-    else:
-        rospy.logwarn("JointState con menos de 7 articulaciones.")
+        # Parámetros
+        self.robot_name = rospy.get_param("~robot_name", "my_gen3")
+        self.base_frame = rospy.get_param("~base_frame", "base_link")
+        self.ee_frame = rospy.get_param("~ee_frame", "gs_camera_pcloud") # frame del sensor para simulacion
+        self.twist_topic = rospy.get_param("~twist_topic", "/dq_control/ee_twist")
 
-def ee_twist_callback(msg: TwistStamped):
-    global _last_twist_msg, _last_twist_time
-    _last_twist_msg = msg
-    _last_twist_time = msg.header.stamp if msg.header.stamp!=rospy.Time() else rospy.Time.now()
+        self.damping = rospy.get_param("~damping", 0.03)
+        self.max_joint_speed = rospy.get_param("~max_joint_speed", 0.1)
+        self.cmd_timeout = rospy.get_param("~cmd_timeout", 0.25)
+        self.publish_rate = rospy.get_param("~publish_rate", 100.0)
 
-# ======= Helpers =======
-def clamp_joint_speeds(omega, vmax):
-    omega = np.asarray(omega).copy()
-    omega = np.clip(omega, -vmax, vmax)                 # límite por eje
-    max_norm = np.linalg.norm(omega)
-    if max_norm > vmax * 1.5:                           # límite global suave
-        omega *= (vmax * 1.5) / max_norm
-    return omega
+        # Orden esperado de articulaciones
+        self.expected_joint_names = rospy.get_param(
+            "~joint_names",
+            [
+                "joint_1",
+                "joint_2",
+                "joint_3",
+                "joint_4",
+                "joint_5",
+                "joint_6",
+                "joint_7",
+            ],
+        )
 
-def get_params():
-    params = {}
-    params["lambda_damp"] = rospy.get_param("~lambda_damp", 1e-4)
-    params["vmax"]        = rospy.get_param("~vmax", 0.7)           # rad/s por junta
-    params["sample_time"] = rospy.get_param("~sample_time", 0.01)   # 100 Hz por defecto
-    params["ee_twist_topic"] = rospy.get_param("~ee_twist_topic", "/dq_control/ee_twist")
-    params["twist_timeout"]  = rospy.get_param("~twist_timeout", 0.2)  # s sin comandos -> paro
-    params["warmup_cycles"]  = rospy.get_param("~warmup_cycles", 20)
-    return params
+        # Estado interno
+        self.joint_positions = np.zeros(7, dtype=float)
+        self.have_joint_state = False
 
-def send_joint_velocity(pub, omega):
-    msg = Base_JointSpeeds()
-    for i in range(omega.shape[0]):
-        sp = JointSpeed()
-        sp.joint_identifier = i
-        sp.value = float(omega[i])   # Kortex usa rad/s
-        sp.duration = 0
-        msg.joint_speeds.append(sp)
-    pub.publish(msg)
+        self.last_twist_msg = None
+        self.last_twist_time = None
 
-def compute_dual_twist_from_msg(twist_msg: TwistStamped):
-    """
-    Convención: ω en marco cuerpo (body), v en marco inercial (world).
-    TwistStamped no codifica el frame; asegúrate de publicar con esta convención.
-    """
-    wb = ca.DM([twist_msg.twist.angular.x,
-                twist_msg.twist.angular.y,
-                twist_msg.twist.angular.z])    # ω_b
+        self.tf_listener = tf.TransformListener()
 
-    vi = ca.DM([twist_msg.twist.linear.x,
-                twist_msg.twist.linear.y,
-                twist_msg.twist.linear.z])     # v_i (inercial)
+        # Subs / pubs
+        self.joint_sub = rospy.Subscriber(
+            "/" + self.robot_name + "/joint_states",
+            JointState,
+            self.joint_state_cb,
+            queue_size=10,
+        )
 
-    # Construimos el dual twist 8x1 como [0, wb; 0, vi]
-    dual_tw = ca.vertcat(0.0, wb, 0.0, vi)     # (8,1)
-    return dual_tw
+        self.twist_sub = rospy.Subscriber(
+            self.twist_topic,
+            TwistStamped,
+            self.twist_cb,
+            queue_size=10,
+        )
 
-def dq_diff_ik(dual_twist_cmd, q, lam=1e-4):
-    """
-    dual_twist_cmd: DM (8x1)
-    q: np.array (7,)
-    """
-    J = jacobian(q)                 # (8x7)
-    I = ca.DM.eye(8)
-    # Pseudo-inversa amortiguada (estable)
-    Jpinv = J.T @ ca.pinv(J @ J.T + lam * I)   # (7x8)
-    dq = 2.0 * (Jpinv @ dual_twist_cmd)        # (7x1)   (factor 2 típico en formulación DQ)
-    return np.array(dq).reshape((7,))
+        self.joint_vel_pub = rospy.Publisher(
+            "/" + self.robot_name + "/in/joint_velocity",
+            Base_JointSpeeds,
+            queue_size=10,
+        )
 
-# ======= Main =======
-def main():
-    p = get_params()
+        rospy.loginfo("dq_twist_controller iniciado")
+        rospy.loginfo("  twist_topic: %s", self.twist_topic)
+        rospy.loginfo("  base_frame : %s", self.base_frame)
+        rospy.loginfo("  ee_frame   : %s", self.ee_frame)
 
-    # ROS I/O
-    joint_states_sub = rospy.Subscriber("/my_gen3/joint_states", JointState, joint_state_callback, queue_size=50)
-    ee_twist_sub = rospy.Subscriber(p["ee_twist_topic"], TwistStamped, ee_twist_callback, queue_size=50)
-    joint_velocity_pub = rospy.Publisher("/my_gen3/in/joint_velocity", Base_JointSpeeds, queue_size=10)
+    # ------------------------------------------------------------------
+    # Callbacks
+    # ------------------------------------------------------------------
+    def joint_state_cb(self, msg):
+        """
+        Reordena las articulaciones por nombre.
+        Esto evita errores si el JointState no viene en el orden esperado.
+        """
+        if len(msg.name) == 0 or len(msg.position) == 0:
+            return
 
-    # Frecuencia de bucle
-    hz = max(1, int(round(1.0 / p["sample_time"])))
-    rate = rospy.Rate(hz)
+        name_to_pos = {}
+        for i, name in enumerate(msg.name):
+            if i < len(msg.position):
+                name_to_pos[name] = msg.position[i]
 
-    rospy.loginfo("DQ Diff-IK control por Twist. Topic: %s", p["ee_twist_topic"])
-
-    # Warmup para llenar joint_states
-    for _ in range(p["warmup_cycles"]):
-        if rospy.is_shutdown(): break
-        rate.sleep()
-
-    try:
-        while not rospy.is_shutdown():
-            now = rospy.Time.now()
-
-            # Watchdog de comandos
-            fresh = False
-            if _last_twist_time is not None:
-                age = (now - _last_twist_time).to_sec()
-                fresh = (age <= p["twist_timeout"])
-
-            if fresh and _last_twist_msg is not None:
-                # 1) leer estados actuales
-                q_cur = joint_angles.copy()
-
-                # 2) construir dual twist (8x1) desde el TwistStamped
-                dual_tw_cmd = compute_dual_twist_from_msg(_last_twist_msg)
-
-                # 3) IK diferencial en DQ -> velocidades articulares
-                qdot = dq_diff_ik(dual_tw_cmd, q_cur, lam=p["lambda_damp"])
-
-                # 4) saturación
-                qdot = clamp_joint_speeds(qdot, p["vmax"])
-
-                # 5) publicar a Kortex
-                send_joint_velocity(joint_velocity_pub, qdot)
-
+        q = []
+        missing = []
+        for name in self.expected_joint_names:
+            if name in name_to_pos:
+                q.append(name_to_pos[name])
             else:
-                # Sin comandos frescos: seguridad -> parar
-                send_joint_velocity(joint_velocity_pub, np.zeros(7))
+                missing.append(name)
 
-            rate.sleep()
+        if missing:
+            rospy.logwarn_throttle(
+                2.0,
+                "Faltan articulaciones en JointState: %s. "
+                "Se usará fallback por índice si es posible." % str(missing),
+            )
 
-    finally:
-        # Paro seguro
-        send_joint_velocity(joint_velocity_pub, np.zeros(7))
-        rospy.loginfo("DQ Diff-IK detenido: velocidades a cero.")
+            if len(msg.position) >= 7:
+                self.joint_positions = np.array(msg.position[:7], dtype=float)
+                self.have_joint_state = True
+            return
+
+        self.joint_positions = np.array(q, dtype=float)
+        self.have_joint_state = True
+
+    def twist_cb(self, msg):
+        self.last_twist_msg = msg
+        self.last_twist_time = rospy.Time.now()
+
+    # ------------------------------------------------------------------
+    # Utilidades
+    # ------------------------------------------------------------------
+    def get_rotation_base_to_ee(self):
+        """
+        Devuelve R_base_ee, que rota un vector expresado en ee_frame
+        hacia base_frame:
+            v_base = R_base_ee @ v_ee
+        """
+        try:
+            self.tf_listener.waitForTransform(
+                self.base_frame,
+                self.ee_frame,
+                rospy.Time(0),
+                rospy.Duration(0.2),
+            )
+
+            (trans, quat) = self.tf_listener.lookupTransform(
+                self.base_frame,
+                self.ee_frame,
+                rospy.Time(0),
+            )
+
+            T = tf.transformations.quaternion_matrix(quat)
+            R = T[:3, :3]
+            return R
+
+        except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
+            rospy.logwarn_throttle(
+                1.0,
+                "No se pudo obtener TF entre %s y %s" % (self.base_frame, self.ee_frame),
+            )
+            return None
+
+    def convert_twist_to_base_frame(self, twist_msg):
+        """
+        Convierte el twist recibido al frame base.
+
+        Convenciones:
+        - Si frame_id == base_link:
+            se asume que lineal y angular ya están en base.
+        - Si frame_id == end_effector_link:
+            se asume que lineal y angular están ambas en efector final.
+        """
+        frame_id = twist_msg.header.frame_id.strip()
+
+        v = np.array([
+            twist_msg.twist.linear.x,
+            twist_msg.twist.linear.y,
+            twist_msg.twist.linear.z
+        ], dtype=float)
+
+        w = np.array([
+            twist_msg.twist.angular.x,
+            twist_msg.twist.angular.y,
+            twist_msg.twist.angular.z
+        ], dtype=float)
+
+        if frame_id in ["", self.base_frame, "base_link", "world", "base"]:
+            v_base = v
+            w_base = w
+            return v_base, w_base
+
+        elif frame_id in [self.ee_frame, "end_effector_link", "tool", "ee"]:
+            R_base_ee = self.get_rotation_base_to_ee()
+            if R_base_ee is None:
+                return None, None
+
+            v_base = np.dot(R_base_ee, v)
+            w_base = np.dot(R_base_ee, w)
+            return v_base, w_base
+
+        else:
+            rospy.logwarn_throttle(
+                1.0,
+                "frame_id '%s' no reconocido. Se asume %s." % (frame_id, self.base_frame),
+            )
+            v_base = v
+            w_base = w
+            return v_base, w_base
+
+    def compute_qdot_dls(self, q, v_base, w_base):
+        """
+        Resuelve:
+            xdot = J qdot
+        con Damped Least Squares
+
+        Asume que J = kinova_jacobian(q) devuelve 6x7 con orden:
+            [vx, vy, vz, wx, wy, wz]
+        en base_frame.
+        """
+        xdot = np.hstack((v_base, w_base)).reshape((6, 1))
+
+        J = np.array(kinova_jacobian(q), dtype=float)
+
+        if J.shape != (6, 7):
+            raise RuntimeError(
+                "El Jacobiano debe ser 6x7. Se obtuvo shape=%s" % (str(J.shape),)
+            )
+
+        lam = self.damping
+        JJt = np.dot(J, J.T)
+        inv = np.linalg.inv(JJt + (lam ** 2) * np.eye(6))
+        qdot = np.dot(J.T, np.dot(inv, xdot)).reshape((7,))
+
+        return qdot
+
+    def saturate_qdot(self, qdot):
+        qdot = np.array(qdot, dtype=float)
+
+        # saturación componente a componente
+        qdot = np.clip(qdot, -self.max_joint_speed, self.max_joint_speed)
+
+        return qdot
+
+    def publish_joint_speeds(self, qdot):
+        msg = Base_JointSpeeds()
+
+        for i in range(7):
+            js = JointSpeed()
+            js.joint_identifier = i
+            js.value = float(qdot[i])
+            js.duration = 0
+            msg.joint_speeds.append(js)
+
+        self.joint_vel_pub.publish(msg)
+
+    def publish_zero(self):
+        self.publish_joint_speeds(np.zeros(7))
+
+    def cmd_is_fresh(self):
+        if self.last_twist_time is None:
+            return False
+        dt = (rospy.Time.now() - self.last_twist_time).to_sec()
+        return dt <= self.cmd_timeout
+
+    # ------------------------------------------------------------------
+    # Loop principal
+    # ------------------------------------------------------------------
+    def run(self):
+        rate = rospy.Rate(self.publish_rate)
+
+        while not rospy.is_shutdown():
+            try:
+                if (not self.have_joint_state) or (self.last_twist_msg is None) or (not self.cmd_is_fresh()):
+                    self.publish_zero()
+                    rate.sleep()
+                    continue
+
+                q = self.joint_positions.copy()
+
+                v_base, w_base = self.convert_twist_to_base_frame(self.last_twist_msg)
+                if v_base is None or w_base is None:
+                    self.publish_zero()
+                    rate.sleep()
+                    continue
+
+                qdot = self.compute_qdot_dls(q, v_base, w_base)
+                qdot = self.saturate_qdot(qdot)
+
+                self.publish_joint_speeds(qdot)
+                rate.sleep()
+
+            except Exception as e:
+                rospy.logerr_throttle(1.0, "Error en dq_twist_controller: %s" % str(e))
+                self.publish_zero()
+                rate.sleep()
+
 
 if __name__ == "__main__":
-    try:
-        rospy.init_node("dq_diffik_twist_control", disable_signals=True, anonymous=True)
-        main()
-    except (rospy.ROSInterruptException, KeyboardInterrupt):
-        pass
+    controller = DQTwistController()
+    controller.run()

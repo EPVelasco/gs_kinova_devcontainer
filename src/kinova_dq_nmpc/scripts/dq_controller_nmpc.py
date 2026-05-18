@@ -222,7 +222,7 @@ def main():
     theta_7_min = -1.2
 
     ocp = solver(N_prediction, theta_1_max, theta_1_min, theta_2_max, theta_2_min, theta_3_max, theta_3_min, theta_4_max, theta_4_min, theta_5_max, theta_5_min, theta_6_max, theta_6_min, theta_7_max, theta_7_min, sample_time, t_N, X[:, 0])
-   # acados_ocp_solver = AcadosOcpSolver(ocp, json_file="acados_ocp_" + ocp.model.name + ".json", build= True, generate= True)
+    #acados_ocp_solver = AcadosOcpSolver(ocp, json_file="acados_ocp_" + ocp.model.name + ".json", build= True, generate= True)
     acados_ocp_solver = AcadosOcpSolver(
         ocp,
         json_file="acados_ocp_" + ocp.model.name + ".json",

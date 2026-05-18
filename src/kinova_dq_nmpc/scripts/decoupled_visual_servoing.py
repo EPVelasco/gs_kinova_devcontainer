@@ -7,7 +7,7 @@ import numpy as np
 class ZeroCmdFromFeatures:
     def __init__(self):
         # Publisher for cmd_vel
-        self.cmd_pub = rospy.Publisher('/cmd_vel', Twist, queue_size=10)
+        self.cmd_pub = rospy.Publisher('/ee_cartesian_vel', Twist, queue_size=10)
 
         # Subscriber for features
         rospy.Subscriber('/gs_feature_coords', Float32MultiArray, self.features_callback)
@@ -266,6 +266,7 @@ class ZeroCmdFromFeatures:
         # Vector for velocity regularization
         xi = np.array([2*error_theta[0, 0], 100*error_phi]) 
         velocity_x = (0.005)/(1 + np.linalg.norm(xi))
+        print("Velocidad x:",velocity_x)
         null_space = np.array([[velocity_x], [0.0], [0.0], [error_phi]])
 
         ## Control law
@@ -288,8 +289,8 @@ class ZeroCmdFromFeatures:
         u, twist_z = self.r_theta_control(p1=p2, z1=z2, p2=p1, z2=z1, gain_r=0.2, desired_r=0.0, gain_theta=0.5, desired_theta=0.0, desired_z=0.195)
 
         # limits
-        MAX_LIN = 0.03   # m/s  (30 mm/s)
-        MAX_ANG = 2.0    # rad/s
+        MAX_LIN = 0.005   # m/s  (30 mm/s)
+        MAX_ANG = 0.05    # rad/s
 
         def sat(val, lim):
             return float(np.clip(val, -lim, lim))
@@ -298,11 +299,11 @@ class ZeroCmdFromFeatures:
 
         zero_twist = Twist()
         zero_twist.linear.x  = sat(u[0, 0],      MAX_LIN)
-        zero_twist.linear.y  = sat(u[1, 0],      MAX_LIN)
-        zero_twist.linear.z  = sat(twist_z[0, 0], MAX_LIN)
+        zero_twist.linear.y  = sat(u[1, 0],      MAX_LIN)*0.5
+        zero_twist.linear.z  = sat(twist_z[0, 0], MAX_LIN)*0.1
 
-        zero_twist.angular.x = sat(u[2, 0],       MAX_ANG)
-        zero_twist.angular.y = sat(u[3, 0],       MAX_ANG)
+        zero_twist.angular.x = 0#*sat(u[2, 0],       MAX_ANG)
+        zero_twist.angular.y = sat(u[3, 0],       MAX_ANG)*2.0
         zero_twist.angular.z = sat(twist_z[1, 0], MAX_ANG)
 
         # Publish zero command

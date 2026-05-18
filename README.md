@@ -127,6 +127,15 @@ Once the environment is launched, you can run your visual servoing node
 roslaunch ToDo.launch
 ```
 
+## Launch kinova+gs_mini
+
+roslaunch kortex_gazebo spawn_gs_Kinova.launch start_rviz:=true use_trajectory_controller:=false gs_sim:=true                
+cd /home/catkin_ws/src/kinova_dq_nmpc/scripts && python3 kinova_control_twist.py 
+python3 teleop_kinova.py 
+
+
+python3 decoupled_visual_servoing.py 
+
 ## GPU errors
 
 If you have problems with Nvidia dependencies, or if you don't have a physical GPU, you can create your container without the NVIDIA flags. The `devcontainer_w-o_GPU.json` file has instructions for creating the container. Just replace the contents of the original `devcontainer.json` file with `devcontainer_w-o_GPU.json`.
