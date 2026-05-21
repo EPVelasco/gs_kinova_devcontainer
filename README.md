@@ -36,7 +36,7 @@ The repository is intended to support reproducibility of the paper experiments a
 | Branch | Description |
 | --- | --- |
 | `main` | ROS Noetic simulation environment with Gazebo, Kinova Gen3, and GelSight Mini. |
-| `ros2` | ROS 2 implementation of the visual-tactile control framework. |
+| `ros2` | ROS 2 implementation of the visual-tactile control framework.  Coming soon|
 
 > **Note:** The `main` branch focuses on the simulator used for the paper experiments. The ROS 2 implementation is maintained separately to keep both environments isolated and easier to reproduce.
 
