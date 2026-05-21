@@ -2,6 +2,10 @@
 
 This repository contains the simulation and control code associated with the paper **"VBT-MPC: Vision-Based Tactile MPC for Contour Following"**.
 
+Preprint version: [Arxiv](https://arxiv.org/pdf/2605.20392)
+
+IEEE RA-L version: [Coming soon](https://arxiv.org/pdf/2605.20392)
+
 The current branch provides a ROS Noetic/Gazebo simulation environment for contour-following experiments using a Kinova Gen3 robotic arm equipped with a simulated GelSight Mini tactile sensor. The system includes the simulated robot, tactile sensor, object models, feature extraction nodes, and visual-servoing controllers for edge-tracking experiments.
 
 A ROS 2 implementation is maintained in a separate branch.
@@ -347,8 +351,6 @@ The paper experiments can be reproduced by selecting the corresponding object mo
 | Experiment type | Object | Suggested controller |
 | --- | --- | --- |
 | Straight edge tracking | `aluminum_profile` | `classic_visual_servoing.py`, `decoupled_visual_servoing.py`, or `nmpc_visual_servoing.py` |
-| Curved edge tracking | `curve1` or `curve2` | `nmpc_visual_servoing.py` |
-| Shoe contour tracking | `shoe` | `nmpc_visual_servoing.py` |
 
 For direct comparison between controllers, launch the same object and initial pose, then run each controller separately.
 
@@ -376,20 +378,6 @@ Then reopen the folder in the Dev Container.
 
 Check that `kinova_control_twist.py` is running before launching the visual-servoing controller.
 
-Also check that the simulator was launched with:
-
-```text
-use_trajectory_controller:=false
-```
-
-### The shoe object appears in the wrong pose
-
-Use the recommended pose parameters:
-
-```bash
-object_name:=shoe x:=0.50 y:=0.0 z:=0.0582 roll:=0.012055 pitch:=0.035225 yaw:=0.0
-```
-
 ### Multiple controllers are sending commands
 
 Only one controller should publish commands at a time. Stop the currently running controller before launching another one.
@@ -402,11 +390,12 @@ If you use this repository in your research, please cite the associated paper:
 
 ```bibtex
 @article{velasco2026vbtmpc,
-  title     = {VBT-MPC: Vision-Based Tactile MPC for Contour Following},
-  author    = {Velasco-Sanchez, Edison P. and others},
-  journal   = {To be updated},
-  year      = {2026},
-  note      = {To be updated after publication}
+    title={VBT-MPC: Vision-Based Tactile MPC for Contour Following},
+    author={Velasco-S{\'a}nchez, Edison and Recalde, Luis F and Guanrui, Li and Gil, Pablo},
+    journal={IEEE Robotics and Automation Letters},
+    year={2026},
+    publisher={IEEE},
+    note      = {To be updated after publication}
 }
 ```
 
