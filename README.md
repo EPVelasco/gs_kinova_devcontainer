@@ -389,13 +389,12 @@ Only one controller should publish commands at a time. Stop the currently runnin
 If you use this repository in your research, please cite the associated paper:
 
 ```bibtex
-@article{velasco2026vbtmpc,
-    title={VBT-MPC: Vision-Based Tactile MPC for Contour Following},
-    author={Velasco-S{\'a}nchez, Edison and Recalde, Luis F and Guanrui, Li and Gil, Pablo},
-    journal={IEEE Robotics and Automation Letters},
-    year={2026},
-    publisher={IEEE},
-    note      = {To be updated after publication}
+@article{velasco2026vbt,
+  title={VBT-MPC: Vision-Based Tactile MPC for Contour Following},
+  author={Velasco-Sanchez, Edison and Recalde, Luis F and Li, Guanrui and Gil, Pablo},
+  journal={IEEE Robotics and Automation Letters},
+  year={2026},
+  publisher={IEEE}
 }
 ```
 
@@ -410,6 +409,6 @@ This repository builds on and acknowledges the following open-source projects:
 
 ---
 
-## License
+##  License
 
-Please refer to the repository license file for usage and distribution terms.
+This work is licensed under a [Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License](http://creativecommons.org/licenses/by-nc-sa/4.0) and is intended for non-commercial academic use. If you are interested in using the dataset for commercial purposes please contact us via [email](mailto:edison.velasco@ua.es).  
