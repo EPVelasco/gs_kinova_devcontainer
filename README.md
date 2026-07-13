@@ -2,9 +2,11 @@
 
 This repository contains the simulation and control code associated with the paper **"VBT-MPC: Vision-Based Tactile MPC for Contour Following"**.
 
+Overview (Videos): [VBT-MPC: Vision-Based Tactile MPC for Contour Following](https://aurova.ua.es/VBT-MPC/)
+
 Preprint version: [Arxiv](https://arxiv.org/pdf/2605.20392)
 
-IEEE RA-L version: [Coming soon](https://arxiv.org/pdf/2605.20392)
+IEEE RA-L version: [IEEE paper](https://ieeexplore.ieee.org/document/11538989)
 
 The current branch provides a ROS Noetic/Gazebo simulation environment for contour-following experiments using a Kinova Gen3 robotic arm equipped with a simulated GelSight Mini tactile sensor. The system includes the simulated robot, tactile sensor, object models, feature extraction nodes, and visual-servoing controllers for edge-tracking experiments.
 
