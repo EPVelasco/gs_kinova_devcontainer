@@ -391,12 +391,16 @@ Only one controller should publish commands at a time. Stop the currently runnin
 If you use this repository in your research, please cite the associated paper:
 
 ```bibtex
-@article{velasco2026vbt,
-  title={VBT-MPC: Vision-Based Tactile MPC for Contour Following},
-  author={Velasco-Sanchez, Edison and Recalde, Luis F and Li, Guanrui and Gil, Pablo},
-  journal={IEEE Robotics and Automation Letters},
+@ARTICLE{velasco2026vbtmpc,
+  author={Velasco-Sanchez, Edison and Recalde, Luis F. and Li, Guanrui and Gil, Pablo},
+  journal={IEEE Robotics and Automation Letters}, 
+  title={VBT-MPC: Vision-Based Tactile MPC for Contour Following}, 
   year={2026},
-  publisher={IEEE}
+  volume={11},
+  number={7},
+  pages={8504-8511},
+  keywords={Contacts;Modeling;Silicon;Image sensors;End effectors;Robots;Tactile sensors;Timing;Visual systems;Surfaces;Visual servoing;force and tactile sensing;sensor-based control},
+  doi={10.1109/LRA.2026.3698362}
 }
 ```
 
